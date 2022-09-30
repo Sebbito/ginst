@@ -114,7 +114,7 @@ else
 fi
 
 case $OS in
-	Ubuntu) 
+	Ubuntu|Debian)
 		pm="apt"
 		pm_install="apt-get install -y"
 		;;
