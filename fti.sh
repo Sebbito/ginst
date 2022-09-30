@@ -19,26 +19,26 @@ check_permission() {
 }
 
 check_tool() {
-	if ! tool_exists $1; then # tool not found 
-		if ! install_tool $1; then # couldn't install tool either
+	if ! tool_exists "$@"; then # tool not found 
+		if ! install_tool "$@"; then # couldn't install tool either
 			exit $INSTALLATION_ERROR
 		fi
 	fi
 }
 
 tool_exists() {
-	if type "$1" > /dev/null; then
-		echo "$1" "is installed"
+	if type "$@" > /dev/null; then
+		echo "$@" "is installed"
 		return $SUCCESS
 	else
-		echo "$1" "not installed"
+		echo "$@" "not installed"
 		return $TOOLCHAIN_ERROR
 	fi
 }
 
 install_tool() {
-	if $pm_install $1 > /dev/null; then
-		echo $1 " was correctly installed"
+	if $pm_install $@ > /dev/null; then
+		echo "$@" "was correctly installed"
 		return $SUCCESS
 	else
 		return $INSTALLATION_ERROR
