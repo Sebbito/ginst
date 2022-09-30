@@ -37,10 +37,11 @@ tool_exists() {
 }
 
 install_tool() {
-	if $pm_install $@ > /dev/null; then
+	if $pm_install "$@" > /dev/null; then
 		echo "$@" "was correctly installed"
 		return $SUCCESS
 	else
+		echo "could not install" "$@"
 		return $INSTALLATION_ERROR
 	fi
 }
