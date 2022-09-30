@@ -11,7 +11,9 @@ PERMISSON_ERROR=5
 # function definitions
 check_permission() {
 	if [ $EUID -ne 0 ]; then
-		echo "This script needs super user rights. Please start this script again with sudo ./install.sh"
+		echo "This script needs super user rights. Please start this script again with:
+		
+		sudo ./fti.sh"
 		exit $PERMISSON_ERROR
 	fi
 }
@@ -29,6 +31,7 @@ tool_exists() {
 		echo "$1" "is installed"
 		return $SUCCESS
 	else
+		echo "$1" "not installed"
 		return $TOOLCHAIN_ERROR
 	fi
 }
@@ -45,23 +48,30 @@ install_tool() {
 install_fish(){
 	case $OS in
 		Ubuntu)
-			apt-add-repository ppa:fish-shell/release-3
-			apt update
-			apt install fish
+			echo "Installing fish"
+			apt-add-repository ppa:fish-shell/release-3 >> /dev/null
+			apt update >> /dev/null
+			apt install fish >> /dev/null
+			echo "Fish installed"
 	esac
 }
 
 install_rust() {
-	if curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh; then
-		case $SHELL in
-			/usr/bin/fish)
-				echo "big fish detected blub blub"
-				set -gx PATH "$HOME/.cargo/bin" $PATH;
-				;;
-			*)
-				source "$HOME/.cargo/env"
-		esac
-		return $SUCCESS
+	if curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | $SHELL -s -- -y; then
+		# now since i use fish, the default way of adding the rust stuff to $HOME doesn't work
+		{ # add it to home bash and fish style
+			source "$HOME/.cargo/env" &&
+
+			if tool_exists fish; then
+				echo "Adding config to fish aswell"
+				file=/home/$SUDO_USER/.config/fish/conf.d/env.fish
+				touch $file 
+				echo set -gx PATH "$HOME/.cargo/bin" $PATH > $file
+			fi
+			return $SUCCESS
+		} || {
+		return $INSTALLATION_ERROR
+		}
 	else 
 		echo "Couldn't install Rustup"
 		exit $INSTALLATION_ERROR
@@ -127,9 +137,17 @@ check_tool make
 
 # Check if desired programms are installed and if not, install them
 
-check_tool neovim
+if ! tool_exists nvim; then
+	install_tool neovim
+fi
 
 # these programms need special treatment
+# IMPORTANT: install fish first, for the config of rust
+if ! tool_exists fish; then
+	echo "fish not installed, installing now..."
+	install_fish
+fi
+
 if ! tool_exists rustup; then
 	echo "Rust not installed, installing now..."
 	install_rust
@@ -137,10 +155,6 @@ else
 	echo "Rust installed, proceeding"
 fi
 
-if ! tool_exists fish; then
-	echo "fish not installed, installing now..."
-	install_fish
-fi
 
 # Config
 
