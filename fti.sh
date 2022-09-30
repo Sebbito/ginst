@@ -27,11 +27,9 @@ check_tool() {
 }
 
 tool_exists() {
-	if type "$@" > /dev/null; then
-		echo "$@" "is installed"
+	if type "$@"; then
 		return $SUCCESS
 	else
-		echo "$@" "not installed"
 		return $TOOLCHAIN_ERROR
 	fi
 }
