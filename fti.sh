@@ -84,6 +84,11 @@ install_rust() {
 	fi
 }
 
+update()
+{
+	"$pm_full_update"
+}
+
 # Programm start
 check_permission
 
@@ -123,6 +128,10 @@ case $OS in
 	Ubuntu|Debian)
 		pm="apt"
 		pm_install="apt-get install -y"
+		pm_update="apt update -y"
+		# Debain based first steps
+		"$pm_update"
+		"$pm_install" software-properties-common apt-utils
 		;;
 	Arch)
 		pm="pacman"
@@ -137,6 +146,10 @@ if ! tool_exists $pm; then
 	exit $PACKAGE_MANAGER_ERROR
 fi
 
+# update system
+"$pm_update"
+
+# check and install tools
 check_tool git
 check_tool curl
 check_tool make
