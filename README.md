@@ -15,10 +15,11 @@ Clone this repository and go into the folder to execute the install script.
 
 ```bash
 
+apt update
+apt install -y git
 git clone https://github.com/Sebbito/FTI.git
 cd FTI/
-chmod +x install.sh
-sudo ./install.sh
+./fti.sh
 
 ```
 
