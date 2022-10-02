@@ -19,7 +19,7 @@ apt update
 apt install -y git
 git clone https://github.com/Sebbito/FTI.git
 cd FTI/
-./fti.sh
+./fti.sh all
 
 ```
 
