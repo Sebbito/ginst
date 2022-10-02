@@ -79,7 +79,7 @@ install_rust() {
 }
 
 install_neovim() {
-	sudo add-apt-repository ppa:neovim-ppa/stable
+	sudo add-apt-repository --yes ppa:neovim-ppa/stable
 	$pm_update
 	$pm_install neovim
 }
