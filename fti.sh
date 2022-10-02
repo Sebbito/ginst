@@ -64,15 +64,16 @@ install_fish(){
 
 install_rust() {
 	if curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | $SHELL -s -- -y; then
-		# now since i use fish, the default way of adding the rust stuff to $HOME doesn't work
 		{ # add it to home bash and fish style
-			source "$HOME/.cargo/env" &&
+			# this is really hacky and doesn't work if there is no other user than root
+			source "/home/$SUDO_USER/.cargo/env"
 
+			# now since i use fish, the default way of adding the rust stuff to $HOME doesn't work
 			if tool_exists fish; then
 				echo "Adding config to fish aswell"
 				file=/home/$SUDO_USER/.config/fish/conf.d/env.fish
 				touch "$file" 
-				echo set -gx PATH "$HOME/.cargo/bin" "$PATH" > "$file"
+				echo set -gx PATH "/home/$SUDO_USER/.cargo/bin" "$PATH" > "$file"
 			fi
 			return $SUCCESS
 		} || {
