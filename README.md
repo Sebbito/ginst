@@ -6,8 +6,8 @@ FTI or First Time Install is a tool used by me to install all the command line p
 
 -  Package manager (apt or pacman)
 -  git
--  curl
--  bash
+
+Other tools like curl will be installed automatically.
 
 ## Usage
 
@@ -23,3 +23,17 @@ cd FTI/
 
 ```
 
+## Installation list
+
+-  git
+-  curl
+-  make
+-  rust suite via rustup
+-  neovim
+-  fish
+
+Miscelanius installations:
+
+(On Debian based)
+-  apt-utils
+-  software-properties-common
