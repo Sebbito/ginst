@@ -8,6 +8,8 @@ TOOLCHAIN_ERROR=3
 INSTALLATION_ERROR=4
 PERMISSON_ERROR=5
 
+dotfiles=https://github.com/Sebbito/dotfiles.git
+
 # function definitions
 
 check_tool() {
@@ -76,7 +78,92 @@ install_rust() {
 	fi
 }
 
+install_neovim()
+{
+	sudo add-apt-repository ppa:neovim-ppa/stable
+	$pm_update
+	$pm_install neovim
+}
+
+prep()
+{
+	case $OS in
+		Debian|Ubuntu)
+			pm="sudo apt"
+			pm_install="sudo apt-get install -y"
+			pm_update="sudo apt update -y"
+			$pm_update
+			$pm_install software-properties-common apt-utils
+			;;
+		Arch)
+			pm="pacman"
+			pm_install="pacman -S"
+			;;
+	esac
+}
+
+install()
+{
+	check_tool git
+	check_tool curl
+	check_tool make
+
+	# Check if desired programms are installed and if not, install them
+
+	if ! tool_exists nvim; then
+		install_neovim
+	fi
+
+	# these programms need special treatment
+	# IMPORTANT: install fish first, for the config of rust
+	if ! tool_exists fish; then
+		echo "fish not installed, installing now..."
+		install_fish
+	fi
+
+	if ! tool_exists rustup; then
+		echo "Rust not installed, installing now..."
+		install_rust
+	else
+		echo "Rust installed, proceeding"
+	fi
+}
+
+configure()
+{
+	# only configure if neither .config/nvim or .config/fish exist
+	if [ ! -d "$HOME"/.config/nvim ] && [ ! -d "$HOME"/.config/fish ]; then
+		git clone "$dotfiles"
+		mv dotfiles/* "$HOME"/.config/
+	else
+		echo "Dotfiles already installed. Aborting configuration"
+	fi
+
+	# clean up the download
+	rm -rf ./dotfiles
+}
+
+echo_install_options()
+{
+	echo "	install		-	Installs programms."
+}
+
+echo_config_options()
+{
+	echo "	configure	-	Installs the configuration for the installed programms."
+}
+
+help_function()
+{
+	echo "Use these options for fti.sh:"
+	echo "	all		-	Does installation and full configuration. Adviced for a fresh install."
+	echo_install_options
+	echo_config_options
+}
+
+
 # Programm start
+
 
 # check for distribution
 
@@ -117,62 +204,32 @@ case $OS in
 		;;
 esac
 
-case $OS in
-	Ubuntu|Debian)
-		pm="sudo apt"
-		pm_install="sudo apt-get install -y"
-		pm_update="sudo apt update -y"
-		# Debain based first steps
-		$pm_update
-		$pm_install software-properties-common apt-utils
-		;;
-	Arch)
-		pm="pacman"
-		pm_install="pacman -S"
-		;;
-esac
-
-# Check if nescessary tools are installed
-
+# Check if guessed package manager is installed
 if ! tool_exists $pm; then
 	echo "Package manager not found. Aborting"
 	exit $PACKAGE_MANAGER_ERROR
 fi
 
-# update system
-$pm_update
-
-# check and install tools
-check_tool git
-check_tool curl
-check_tool make
-
-# Check if desired programms are installed and if not, install them
-
-if ! tool_exists nvim; then
-	install_tool neovim
-fi
-
-# these programms need special treatment
-# IMPORTANT: install fish first, for the config of rust
-if ! tool_exists fish; then
-	echo "fish not installed, installing now..."
-	install_fish
-fi
-
-if ! tool_exists rustup; then
-	echo "Rust not installed, installing now..."
-	install_rust
-else
-	echo "Rust installed, proceeding"
-fi
-
-
-# Config
-
-
+case $1 in
+	all)
+		# do everything
+		prep
+		install
+		configure
+		;;
+	install)
+		# check and install tools
+		install
+		;;
+	configure)
+		# download and deploy configs only
+		configure
+		;;
+	*)
+	help_function
+	;;
+esac
 
 # Show report
-
 
 # Exit
