@@ -9,14 +9,6 @@ INSTALLATION_ERROR=4
 PERMISSON_ERROR=5
 
 # function definitions
-check_permission() {
-	if [ $EUID -ne 0 ]; then
-		echo "This script needs super user rights. Please start this script again with:
-		
-		sudo ./fti.sh"
-		exit $PERMISSON_ERROR
-	fi
-}
 
 check_tool() {
 	if ! tool_exists "$@"; then # tool not found 
@@ -45,13 +37,12 @@ install_tool() {
 }
 
 install_fish(){
+	echo "Installing fish"
 	case $OS in
 		Ubuntu)
-			echo "Installing fish"
 			apt-add-repository --yes ppa:fish-shell/release-3
 			$pm_update	
 			$pm_install fish
-			echo "Fish installed"
 			;;
 		Debian)
 			echo 'deb http://download.opensuse.org/repositories/shells:/fish:/release:/3/Debian_11/ /' | sudo tee /etc/apt/sources.list.d/shells:fish:release:3.list
@@ -60,20 +51,20 @@ install_fish(){
 			$pm_install fish
 			;;
 	esac
+	echo "Fish installed"
 }
 
 install_rust() {
 	if curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | $SHELL -s -- -y; then
 		{ # add it to home bash and fish style
-			# this is really hacky and doesn't work if there is no other user than root
-			source "/home/$SUDO_USER/.cargo/env"
+			source "$HOME/.cargo/env"
 
-			# now since i use fish, the default way of adding the rust stuff to $HOME doesn't work
+			# for the default way of adding the rust stuff to $HOME doesn't work so we create the env file
 			if tool_exists fish; then
 				echo "Adding config to fish aswell"
 				file=/home/$SUDO_USER/.config/fish/conf.d/env.fish
 				touch "$file" 
-				echo set -gx PATH "/home/$SUDO_USER/.cargo/bin" "$PATH" >> "$file"
+				echo set -gx PATH "$HOME/.cargo/bin" "$PATH" > "$file"
 			fi
 			return $SUCCESS
 		} || {
@@ -86,7 +77,6 @@ install_rust() {
 }
 
 # Programm start
-check_permission
 
 # check for distribution
 
@@ -129,9 +119,9 @@ esac
 
 case $OS in
 	Ubuntu|Debian)
-		pm="apt"
-		pm_install="apt-get install -y"
-		pm_update="apt update -y"
+		pm="sudo apt"
+		pm_install="sudo apt-get install -y"
+		pm_update="sudo apt update -y"
 		# Debain based first steps
 		$pm_update
 		$pm_install software-properties-common apt-utils
