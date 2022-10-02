@@ -48,9 +48,9 @@ install_fish(){
 	case $OS in
 		Ubuntu)
 			echo "Installing fish"
-			apt-add-repository ppa:fish-shell/release-3 >> /dev/null
-			apt update >> /dev/null
-			apt install fish >> /dev/null
+			apt-add-repository ppa:fish-shell/release-3
+			apt update
+			apt install fish
 			echo "Fish installed"
 			;;
 		Debian)
@@ -82,11 +82,6 @@ install_rust() {
 		echo "Couldn't install Rustup"
 		exit $INSTALLATION_ERROR
 	fi
-}
-
-update()
-{
-	"$pm_full_update"
 }
 
 # Programm start
@@ -130,8 +125,8 @@ case $OS in
 		pm_install="apt-get install -y"
 		pm_update="apt update -y"
 		# Debain based first steps
-		"$pm_update"
-		"$pm_install" software-properties-common apt-utils
+		$pm_update
+		$pm_install software-properties-common apt-utils
 		;;
 	Arch)
 		pm="pacman"
@@ -147,7 +142,7 @@ if ! tool_exists $pm; then
 fi
 
 # update system
-"$pm_update"
+$pm_update
 
 # check and install tools
 check_tool git
