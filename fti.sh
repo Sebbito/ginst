@@ -38,7 +38,7 @@ install_tool() {
 	fi
 }
 
-install_fish(){
+install_fish() {
 	echo "Installing fish"
 	case $OS in
 		Ubuntu)
@@ -78,15 +78,13 @@ install_rust() {
 	fi
 }
 
-install_neovim()
-{
+install_neovim() {
 	sudo add-apt-repository ppa:neovim-ppa/stable
 	$pm_update
 	$pm_install neovim
 }
 
-prep()
-{
+prep() {
 	case $OS in
 		Debian|Ubuntu)
 			pm="sudo apt"
@@ -102,8 +100,7 @@ prep()
 	esac
 }
 
-install()
-{
+install() {
 	check_tool git
 	check_tool curl
 	check_tool make
@@ -129,8 +126,7 @@ install()
 	fi
 }
 
-configure()
-{
+configure() {
 	# only configure if neither .config/nvim or .config/fish exist
 	if [ ! -d "$HOME"/.config/nvim ] && [ ! -d "$HOME"/.config/fish ]; then
 		git clone "$dotfiles"
@@ -143,18 +139,15 @@ configure()
 	rm -rf ./dotfiles
 }
 
-echo_install_options()
-{
+echo_install_options() {
 	echo "	install		-	Installs programms."
 }
 
-echo_config_options()
-{
+echo_config_options() {
 	echo "	configure	-	Installs the configuration for the installed programms."
 }
 
-help_function()
-{
+help_function() {
 	echo "Use these options for fti.sh:"
 	echo "	all		-	Does installation and full configuration. Adviced for a fresh install."
 	echo_install_options
@@ -219,15 +212,16 @@ case $1 in
 		;;
 	install)
 		# check and install tools
+		prep
 		install
 		;;
 	configure)
-		# download and deploy configs only
+		# download and deploy configs only (doesn't need prep)
 		configure
 		;;
 	*)
-	help_function
-	;;
+		help_function
+		;;
 esac
 
 # Show report
