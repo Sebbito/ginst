@@ -71,8 +71,8 @@ install_rust() {
 			if tool_exists fish; then
 				echo "Adding config to fish aswell"
 				file=/home/$SUDO_USER/.config/fish/conf.d/env.fish
-				touch $file 
-				echo set -gx PATH "$HOME/.cargo/bin" $PATH > $file
+				touch "$file" 
+				echo set -gx PATH "$HOME/.cargo/bin" "$PATH" > "$file"
 			fi
 			return $SUCCESS
 		} || {
