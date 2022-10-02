@@ -73,7 +73,7 @@ install_rust() {
 				echo "Adding config to fish aswell"
 				file=/home/$SUDO_USER/.config/fish/conf.d/env.fish
 				touch "$file" 
-				echo set -gx PATH "/home/$SUDO_USER/.cargo/bin" "$PATH" > "$file"
+				echo set -gx PATH "/home/$SUDO_USER/.cargo/bin" "$PATH" >> "$file"
 			fi
 			return $SUCCESS
 		} || {
