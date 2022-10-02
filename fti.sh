@@ -119,6 +119,13 @@ else
     VER=$(uname -r)
 fi
 
+# name cleanup because if it's debian, and we got the info from /etc/os-release it will not be 'Debian' but 'Debian GNU/Linux' 
+case $OS in
+	"Debian GNU/Linux")
+		OS=Debian
+		;;
+esac
+
 case $OS in
 	Ubuntu|Debian)
 		pm="apt"
