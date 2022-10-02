@@ -62,7 +62,7 @@ install_rust() {
 			# for the default way of adding the rust stuff to $HOME doesn't work so we create the env file
 			if tool_exists fish; then
 				echo "Adding config to fish aswell"
-				file=/home/$SUDO_USER/.config/fish/conf.d/env.fish
+				file=$HOME/.config/fish/conf.d/env.fish
 				touch "$file" 
 				echo set -gx PATH "$HOME/.cargo/bin" "$PATH" > "$file"
 			fi
