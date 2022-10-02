@@ -48,16 +48,16 @@ install_fish(){
 	case $OS in
 		Ubuntu)
 			echo "Installing fish"
-			apt-add-repository ppa:fish-shell/release-3
-			apt update
-			apt install fish
+			apt-add-repository --yes ppa:fish-shell/release-3
+			$pm_update	
+			$pm_install fish
 			echo "Fish installed"
 			;;
 		Debian)
 			echo 'deb http://download.opensuse.org/repositories/shells:/fish:/release:/3/Debian_11/ /' | sudo tee /etc/apt/sources.list.d/shells:fish:release:3.list
 			curl -fsSL https://download.opensuse.org/repositories/shells:fish:release:3/Debian_11/Release.key | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/shells_fish_release_3.gpg > /dev/null
-			apt update
-			apt install -y fish
+			$pm_update	
+			$pm_install fish
 			;;
 	esac
 }
