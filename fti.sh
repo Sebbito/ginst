@@ -56,6 +56,14 @@ install_fish() {
 	echo "Fish installed"
 }
 
+install_fisher() {
+  curl -sL https://git.io/fisher | source && fisher install jorgebucaran/fisher
+}
+
+install_tide() {
+  fisher install IlanCosman/tide@v5
+}
+
 install_rust() {
 	if curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | $SHELL -s -- -y; then
 		{ # add it to home bash and fish style
@@ -117,6 +125,13 @@ install() {
 		echo "fish not installed, installing now..."
 		install_fish
 	fi
+
+  # install fisher
+  if ! tool_exists fisher; then
+    install_fisher
+    install_tide # install tide aswell if we didnt have fisher (for the config to work)
+  fi
+ 
 
 	if ! tool_exists rustup; then
 		echo "Rust not installed, installing now..."
