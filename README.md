@@ -11,6 +11,10 @@ Other tools like curl will be installed automatically.
 
 ## Usage
 
+There are two ways to use this script.
+
+### Clone it with git
+
 Clone this repository and go into the folder to execute the install script.
 
 ```bash
@@ -23,6 +27,13 @@ cd FTI/
 
 ```
 
+### One time use via curl
+
+You can also use the script without downloading the repository like this:
+
+`curl -sSl https://raw.githubusercontent.com/Sebbito/FTI/main/fti.sh | sh -s -- all `
+
+Note that you can change the option you want. Just change `all` to `install` or to `configure`.
 ## Installation list
 
 -  git
