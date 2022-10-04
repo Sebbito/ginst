@@ -57,11 +57,12 @@ install_fish() {
 }
 
 install_fisher() {
-  curl -sL https://git.io/fisher | source && fisher install jorgebucaran/fisher
+  fish -c "curl -sL https://git.io/fisher | source && fisher install jorgebucaran/fisher"
 }
 
-install_tide() {
-  fisher install IlanCosman/tide@v5
+install_fisher_addons() {
+  fish -c "fisher install IlanCosman/tide@v5" # tide
+  fish -c "fisher install jomik/fish-gruvbox" # gruvbox
 }
 
 install_rust() {
@@ -129,7 +130,7 @@ install() {
   # install fisher
   if ! tool_exists fisher; then
     install_fisher
-    install_tide # install tide aswell if we didnt have fisher (for the config to work)
+    install_fisher_addons
   fi
  
 
