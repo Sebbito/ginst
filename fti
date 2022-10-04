@@ -42,7 +42,7 @@ install_fish() {
 	echo "Installing fish"
 	case $OS in
 		Ubuntu)
-			apt-add-repository --yes ppa:fish-shell/release-3
+			sudo apt-add-repository --yes ppa:fish-shell/release-3
 			$pm_update	
 			$pm_install fish
 			;;
