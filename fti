@@ -29,7 +29,7 @@ tool_exists() {
 }
 
 install_tool() {
-	if $pm_install "$@" > /dev/null; then
+	if $pm_install "$@"; then
 		echo "$@" "was correctly installed"
 		return $SUCCESS
 	else
@@ -43,30 +43,31 @@ install_fish() {
 	case $OS in
 		Ubuntu)
 			sudo apt-add-repository --yes ppa:fish-shell/release-3
-			$pm_update	
-			$pm_install fish
 			;;
 		Debian)
 			echo 'deb http://download.opensuse.org/repositories/shells:/fish:/release:/3/Debian_11/ /' | sudo tee /etc/apt/sources.list.d/shells:fish:release:3.list
 			curl -fsSL https://download.opensuse.org/repositories/shells:fish:release:3/Debian_11/Release.key | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/shells_fish_release_3.gpg > /dev/null
-			$pm_update	
-			$pm_install fish
+			;;
+		openSUSE)
+			zypper addrepo https://download.opensuse.org/repositories/shells:fish:release:3/openSUSE_Tumbleweed/shells:fish:release:3.repo
 			;;
 	esac
+	$pm_update	
+	$pm_install fish
 	echo "Fish installed"
 }
 
+# probably not needed since we pull the config anyway
 install_fisher() {
   fish -c "curl -sL https://git.io/fisher | source && fisher install jorgebucaran/fisher"
 }
-
 install_fisher_addons() {
   fish -c "fisher install IlanCosman/tide@v5" # tide
   fish -c "fisher install jomik/fish-gruvbox" # gruvbox
 }
 
 install_rust() {
-	if curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | $SHELL -s -- -y; then
+	if curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y; then
 		{ # add it to home bash and fish style
 			source "$HOME/.cargo/env"
 
@@ -74,6 +75,7 @@ install_rust() {
 			if tool_exists fish; then
 				echo "Adding config to fish aswell"
 				file=$HOME/.config/fish/conf.d/env.fish
+				mkdir -p $HOME/.config/fish/conf.d
 				touch "$file" 
 				echo set -gx PATH "$HOME/.cargo/bin" "$PATH" > "$file"
 			fi
@@ -87,10 +89,26 @@ install_rust() {
 	fi
 }
 
+install_nerd_fonts(){
+	git clone --depth 1 https://github.com/ryanoasis/nerd-fonts.git /tmp/nerd-fonts
+	/tmp/nerd-fonts/install
+}
+
 install_neovim() {
-	sudo add-apt-repository --yes ppa:neovim-ppa/stable
+	case $OS in
+		Ubuntu)
+			sudo add-apt-repository --yes ppa:neovim-ppa/stable
+			;;
+		Fedora|openSUSE) # no additional setup required
+			;;
+	esac
 	$pm_update
 	$pm_install neovim
+	echo "neovim installed"
+}
+
+install_lvim() {
+	LV_BRANCH='release-1.2/neovim-0.8' bash <(curl -s https://raw.githubusercontent.com/lunarvim/lunarvim/master/utils/installer/install.sh) -- --yes
 }
 
 prep() {
@@ -104,9 +122,17 @@ prep() {
 			;;
 		Arch)
 			pm="pacman"
-			pm_install="pacman -S"
+			pm_install="sudo pacman -S"
+			pm_update="sudo pacman -Syu"
+			;;
+		openSUSE)
+			pm="zypper"
+			pm_install="sudo zypper --quiet --non-interactive install"
+			pm_update="sudo zypper refresh"
 			;;
 	esac
+
+	echo "Using package manager $pm"
 }
 
 install() {
@@ -120,19 +146,15 @@ install() {
 		install_neovim
 	fi
 
-	# these programms need special treatment
-	# IMPORTANT: install fish first, for the config of rust
-	if ! tool_exists fish; then
-		echo "fish not installed, installing now..."
-		install_fish
+	# rust dependancy
+	if ! tool_exists cc; then
+		$pm_install gcc
 	fi
 
-  # install fisher
-  if ! tool_exists fisher; then
-    install_fisher
-    install_fisher_addons
-  fi
- 
+	# lunarvim (actually treesitter) dependancy
+	if ! tool_exists g++; then
+		$pm_install "gcc-c++"
+	fi
 
 	if ! tool_exists rustup; then
 		echo "Rust not installed, installing now..."
@@ -140,6 +162,31 @@ install() {
 	else
 		echo "Rust installed, proceeding"
 	fi
+
+	if ! tool_exists lvim; then
+		install_lvim
+	fi
+
+	# these programms need special treatment
+	# IMPORTANT: install fish first, for the config of rust
+	if ! tool_exists fish; then
+		echo "fish not installed, installing now..."
+		install_fish
+	fi
+
+	# install fisher
+	if ! tool_exists fisher; then
+		install_fisher
+		install_fisher_addons
+	fi
+
+	# change shell to fish
+	echo "Please use 'chsh -s $(type fish)' to use fish per default"
+}
+
+icons(){
+	# install nerd fonts (yes all of them)
+	install_nerd_fonts
 }
 
 configure() {
@@ -163,11 +210,15 @@ echo_config_options() {
 	echo "	configure	-	Installs the configuration for the installed programms."
 }
 
+echo_icon_options(){
+	echo "	icons		-	Installs all icons available in the nerd-fonts repository."
+
 help_function() {
 	echo "Use these options for fti.sh:"
 	echo "	all		-	Does installation and full configuration. Adviced for a fresh install."
 	echo_install_options
 	echo_config_options
+	echo_icon_options
 }
 
 
@@ -211,7 +262,12 @@ case $OS in
 	"Debian GNU/Linux")
 		OS=Debian
 		;;
+	"openSUSE Tumbleweed")
+		OS=openSUSE
+		;;
 esac
+
+echo "Detected OS as $OS"
 
 # Check if guessed package manager is installed
 if ! tool_exists $pm; then
@@ -224,6 +280,7 @@ case $1 in
 		# do everything
 		prep
 		install
+		icons
 		configure
 		;;
 	install)
@@ -234,6 +291,9 @@ case $1 in
 	configure)
 		# download and deploy configs only (doesn't need prep)
 		configure
+		;;
+	icons)
+		icons
 		;;
 	*)
 		help_function
