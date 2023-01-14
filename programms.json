@@ -1,0 +1,10 @@
+{
+    "programms": [
+        {
+            "name": "fish",
+            "Fedora": {
+                "install": "sudo dnf install fish"
+            }
+        }
+    ]
+}
