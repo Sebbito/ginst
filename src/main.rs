@@ -1,15 +1,15 @@
-use std::fs;
+use std::{fs, io, env};
 use std::process::Command;
 
 use json::JsonValue;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 enum Status {
     Installed,
     Missing,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct Programm {
     status: Status,
     name: String,
@@ -45,6 +45,10 @@ fn generate_prog_vec(json_parsed: JsonValue) -> Vec<Programm> {
     let os = get_dist();
 
     for programm in json_parsed["programms"].members() {
+        // println!("{0:#?}", programm.clone());
+        // println!("{0:#?}", os.clone());
+        
+
         let prog = Programm {
             name: programm["name"].clone().to_string(),
             install: programm[os.clone()]["install"].clone().to_string(),
@@ -62,11 +66,36 @@ fn get_dist() -> String {
                     .expect("Failed to get os information");
 
     let raw = String::from_utf8(output.stdout).expect("Failed to generate string from stoud");
-    raw.replace("\"", "").chars().skip(5).collect()
+    raw.replace("\"", "").replace("\n", "").chars().skip(5).collect()
 }
 
 fn clear() {
     Command::new("clear").status().expect("Failed to execute");
+}
+
+fn install_missing(programms: Vec<Programm>) {
+    for prog in programms {
+
+        if prog.status == Status::Missing {
+            // println!("{0:#?}", prog.clone());
+
+            if prog.install != "null" {
+                let install: Vec<&str> = prog.install.split(" ").collect();
+                let command = install[0].clone();
+                let args: Vec<&str>= install.into_iter().skip(1).collect();
+
+                // println!("{0:#?}", command);
+                // println!("{0:#?}", args);
+
+                let status = Command::new(command).args(args).status().expect("Failed to execute install command");
+                if !status.success() {
+                    panic!("Something is fucky wucky");
+                }
+            } else {
+                println!("No installation instructions for programm '{}' given.", prog.name);
+            }
+        }
+    }
 }
 
 fn main() {
@@ -74,9 +103,23 @@ fn main() {
     let json_parsed = json::parse(&file_contents).expect("Could not parse json file. Maybe you forgot a comma somewhere?");
 
     let programms = generate_prog_vec(json_parsed);
+    env::set_var("RUST_BACKTRACE", "full");
 
-    clear();
+    // clear();
 
     println!("Programms installed:\n");
-    print_status(programms);
+    print_status(programms.clone());
+
+    println!("Do you wish to install all missing programms?\n\n(Y/n)");
+
+    let mut input = String::new();
+
+    io::stdin()
+        .read_line(&mut input)
+        .expect("Could not read input");
+
+    println!("{0:#?}", input);
+    if input == "\n" || input == "y" || input == "y" {
+        install_missing(programms.clone());
+    }
 }

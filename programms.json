@@ -3,7 +3,7 @@
         {
             "name": "fish",
             "Fedora Linux": {
-                "install": "sudo dnf install fish"
+                "install": "dnf install fish"
             }
         },
         {
@@ -31,9 +31,9 @@
             }
         },
         {
-            "name": "kek",
+            "name": "neofetch",
             "Fedora Linux": {
-                "install": ""
+                "install": "sudo dnf install -y neofetch"
             }
         }
     ]
