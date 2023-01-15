@@ -1,4 +1,5 @@
-use std::{fs, io, env};
+use std::path::Path;
+use std::{fs, io, env, path};
 use std::process::Command;
 use json::JsonValue::{self, Null};
 
@@ -167,12 +168,11 @@ fn count_missing(programms: Vec<Programm>) -> u8 {
     counter
 }
 
-fn main() {
+fn programm_routine() {
     let file_contents = fs::read_to_string("programms.json").unwrap();
     let json_parsed = json::parse(&file_contents).expect("Could not parse json file. Maybe you forgot a comma somewhere?");
 
     let programms = generate_prog_vec(json_parsed);
-    env::set_var("RUST_BACKTRACE", "full");
 
     //
     // println!("{0:#?}", programms.clone());
@@ -195,4 +195,22 @@ fn main() {
             install_missing(programms.clone());
         }
     }
+}
+
+fn config_routine() {
+    let home = std::env::var("HOME").unwrap();
+    let conf_path: String = format!("{}/.config/.git", home);
+    let path = Path::new(&conf_path).canonicalize().expect("Could not resolve path");
+
+    println!("{0:#?}", path);
+    if  !path.exists() {
+        println!("Git repo not found in config folder.");
+    }
+}
+
+fn main() {
+    env::set_var("RUST_BACKTRACE", "full");
+
+    // programm_routine();
+    config_routine();
 }
