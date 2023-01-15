@@ -3,37 +3,62 @@
         {
             "name": "fish",
             "Fedora Linux": {
-                "install": "dnf install fish"
+                "install": "sudo dnf install fish"
             }
         },
         {
             "name": "nvim",
             "Fedora Linux": {
-                "install": ""
+                "install": "sudo dnf install -y neovim"
             }
         },
         {
             "name": "rustup",
             "Fedora Linux": {
-                "install": ""
-            }
-        },
-        {
-            "name": "lvim",
-            "Fedora Linux": {
-                "install": ""
+                "install": "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y"
             }
         },
         {
             "name": "git",
             "Fedora Linux": {
-                "install": ""
+                "install": "sudo dnf install -y git"
             }
         },
         {
             "name": "neofetch",
             "Fedora Linux": {
                 "install": "sudo dnf install -y neofetch"
+            }
+        },
+        {
+            "name": "lvim",
+            "Fedora Linux": {
+                "install": "LV_BRANCH='release-1.2/neovim-0.8' bash <(curl -s https://raw.githubusercontent.com/lunarvim/lunarvim/fc6873809934917b470bff1b072171879899a36b/utils/installer/install.sh) -- --yes"
+            },
+            "dependancies": {
+                "programms": [
+                    {
+                        "name": "git"
+                    },
+                    {
+                        "name": "make"
+                    },
+                    {
+                        "name": "pip"
+                    },
+                    {
+                        "name": "python3"
+                    },
+                    {
+                        "name": "npm"
+                    },
+                    {
+                        "name": "node"
+                    },
+                    {
+                        "name": "cargo"
+                    }
+                ]
             }
         }
     ]
