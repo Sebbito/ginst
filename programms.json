@@ -2,8 +2,38 @@
     "programms": [
         {
             "name": "fish",
-            "Fedora": {
+            "Fedora Linux": {
                 "install": "sudo dnf install fish"
+            }
+        },
+        {
+            "name": "nvim",
+            "Fedora Linux": {
+                "install": ""
+            }
+        },
+        {
+            "name": "rustup",
+            "Fedora Linux": {
+                "install": ""
+            }
+        },
+        {
+            "name": "lvim",
+            "Fedora Linux": {
+                "install": ""
+            }
+        },
+        {
+            "name": "git",
+            "Fedora Linux": {
+                "install": ""
+            }
+        },
+        {
+            "name": "kek",
+            "Fedora Linux": {
+                "install": ""
             }
         }
     ]
