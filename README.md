@@ -1,62 +1,54 @@
 # FTI
 
-FTI or First Time Install is a tool used by me to install all the command line programms that i usually need with every Linux distro.
+FTI or First Time Install is (currently) a Linux only tool used by me to install all the command line programs that i usually need with every Linux distro.
 
-## JSON Structure
-
-```json
-{
-    "programm-name": {
-        "install": {
-            ...
-        }
-    }
-}
-```
+The tool takes a `programs.json` file and tries to execute the commands given in the configuration
 
 ## Prerequisites
 
--  Package manager (apt or pacman)
+-  cargo
 -  git
 
 Other tools like curl will be installed automatically.
 
-## Usage
-
-There are two ways to use this script.
-
-### Clone it with git
-
-Clone this repository and go into the folder to execute the install script.
+## Installation (as of now)
 
 ```bash
-
-apt update
-apt install -y git
 git clone https://github.com/Sebbito/FTI.git
 cd FTI/
-./fti.sh all
-
+cargo run
 ```
 
-### One time use via curl
+## Configuring
 
-You can also use the script without downloading the repository like this:
+Right now the only way to configure the tool is through the `programs.json` file.
 
-`curl -sSl https://raw.githubusercontent.com/Sebbito/FTI/main/fti.sh | sh -s -- all `
+There you can specify a program with installations per distribution and dependencies.
 
-Note that you can change the option you want. Just change `all` to `install` or to `configure`.
-## Installation list
+The `.json` file has the following structure:
 
--  git
--  curl
--  make
--  rust suite via rustup
--  neovim
--  fish
+```json
+{
+    "programs": [
+        ...
+    ]
+}
+```
 
-Miscelanius installations:
+Where each program has a structure of:
 
-(On Debian based)
--  apt-utils
--  software-properties-common
+```json
+{
+    "name": "<name>",
+    "install": {
+        "<dist-name>": "<instructions>"
+    },
+    "dependencies": {
+        "programs": [
+            ...
+        ]
+    }
+}
+```
+
+As you can see, the dependencies attribute is also just a list of programs, meaning you can nest this as deep as you want to.
