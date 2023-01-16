@@ -11,12 +11,12 @@ pub struct Program {
     status: Status,
     name: String,
     install: String,
-    dependancies: Vec<Program>,
+    dependencies: Vec<Program>,
 }
 
 impl Program {
     fn is_installed(&self) -> bool {
-        if self.status == Status::Installed && self.dependancies_installed() {
+        if self.status == Status::Installed && self.dependencies_installed() {
             true
         } else {
             false
@@ -36,11 +36,11 @@ impl Program {
         }
     }
 
-    fn dependancies_installed(&self) -> bool {
+    fn dependencies_installed(&self) -> bool {
         let mut ret = true;
 
-        if !self.dependancies.is_empty() {
-            for val in self.dependancies.clone().iter_mut().map(|d| d.is_installed()) {
+        if !self.dependencies.is_empty() {
+            for val in self.dependencies.clone().iter_mut().map(|d| d.is_installed()) {
                 if val == false {
                     ret = false;
                 }
@@ -85,7 +85,7 @@ impl Program {
     }
 
     fn print_dependacies(&self) {
-        for dep in self.dependancies.clone() {
+        for dep in self.dependencies.clone() {
             print!("  ");
             dep.print_status();
         }
@@ -97,10 +97,10 @@ pub mod util {
     use json::JsonValue::{self, Null};
     use fti::get_dist;
 
-    pub fn build_dependacy_list(dependancies: JsonValue) -> Vec<Program> {
-        if dependancies != Null {
-            // println!("Building dependacies with {0:#?}", dependancies.clone());
-            return generate_prog_vec(dependancies);
+    pub fn build_dependacy_list(dependencies: JsonValue) -> Vec<Program> {
+        if dependencies != Null {
+            // println!("Building dependacies with {0:#?}", dependencies.clone());
+            return generate_prog_vec(dependencies);
         } else {
             vec![]
         }
@@ -119,10 +119,10 @@ pub mod util {
             prog.name = program["name"].clone().to_string();
             prog.install = program["install"][os.clone()].clone().to_string();
             prog.status = prog.check();
-            if program["dependancies"] != Null {
-                prog.dependancies = build_dependacy_list(program["dependancies"].clone());
+            if program["dependencies"] != Null {
+                prog.dependencies = build_dependacy_list(program["dependencies"].clone());
             } else {
-                prog.dependancies = vec![];
+                prog.dependencies = vec![];
             }
 
             programs.push(prog);
