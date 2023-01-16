@@ -117,7 +117,7 @@ pub mod util {
             let mut prog: Programm = Default::default();
 
             prog.name = programm["name"].clone().to_string();
-            prog.install = programm[os.clone()]["install"].clone().to_string();
+            prog.install = programm["install"][os.clone()].clone().to_string();
             prog.status = prog.check();
             if programm["dependancies"] != Null {
                 prog.dependancies = build_dependacy_list(programm["dependancies"].clone());
