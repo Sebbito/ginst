@@ -12,7 +12,7 @@ fn clear() {
 }
 
 fn programm_routine() {
-    let file_contents = fs::read_to_string("programms.json")
+    let file_contents = fs::read_to_string("programs.json")
                             .expect("Could not find json file. Make sure you are in a directory where theres also the json file.");
     let json_parsed = json::parse(&file_contents)
                         .expect("Could not parse json file. Maybe you forgot a comma somewhere?");
