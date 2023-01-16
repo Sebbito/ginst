@@ -66,7 +66,7 @@ impl Program {
                     panic!("Something is fucky wucky");
                 }
             } else {
-                println!("No installation instructions for programm '{}' given.", self.name);
+                println!("No installation instructions for program '{}' given.", self.name);
             }
         }
     }
@@ -93,7 +93,7 @@ impl Program {
 }
 
 pub mod util {
-    use crate::programm::Program;
+    use crate::program::Program;
     use json::JsonValue::{self, Null};
     use fti::get_dist;
 
@@ -107,40 +107,40 @@ pub mod util {
     }
 
     pub fn generate_prog_vec(json_parsed: JsonValue) -> Vec<Program>{
-        let mut programms: Vec<Program> = vec![];
+        let mut programs: Vec<Program> = vec![];
         let os = get_dist();
 
-        for programm in json_parsed["programs"].members() {
+        for program in json_parsed["programs"].members() {
             // println!("{0:#?}", programm.clone());
             // println!("{0:#?}", os.clone());
 
             let mut prog: Program = Default::default();
 
-            prog.name = programm["name"].clone().to_string();
-            prog.install = programm["install"][os.clone()].clone().to_string();
+            prog.name = program["name"].clone().to_string();
+            prog.install = program["install"][os.clone()].clone().to_string();
             prog.status = prog.check();
-            if programm["dependancies"] != Null {
-                prog.dependancies = build_dependacy_list(programm["dependancies"].clone());
+            if program["dependancies"] != Null {
+                prog.dependancies = build_dependacy_list(program["dependancies"].clone());
             } else {
                 prog.dependancies = vec![];
             }
 
-            programms.push(prog);
+            programs.push(prog);
         }
         
         // println!("{0:#?}", programms.clone());
-        return programms;
+        return programs;
     }
 
-    pub fn install_missing(programms: Vec<Program>) {
-        for prog in programms {
+    pub fn install_missing(programs: Vec<Program>) {
+        for prog in programs {
             prog.install();
         }
     }
 
-    pub fn count_missing(programms: Vec<Program>) -> u8 {
+    pub fn count_missing(programs: Vec<Program>) -> u8 {
         let mut counter = 0;
-        for p in programms {
+        for p in programs {
             if !p.is_installed() {
                 counter += 1;
             }
@@ -151,9 +151,9 @@ pub mod util {
 }
 
 pub mod display {
-    use crate::programm::Program;
-    pub fn print_all(programms: Vec<Program>) {
-        for prog in programms {
+    use crate::program::Program;
+    pub fn print_all(programs: Vec<Program>) {
+        for prog in programs {
             prog.print_all();
         }
     }

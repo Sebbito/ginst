@@ -1,10 +1,10 @@
 use std::path::Path;
 use std::{fs, io, env};
 use std::process::Command;
-use crate::programm::util::{generate_prog_vec, count_missing, install_missing};
-use crate::programm::display::print_all;
+use crate::program::util::{generate_prog_vec, count_missing, install_missing};
+use crate::program::display::print_all;
 
-pub mod programm;
+pub mod program;
 
 fn clear() {
     // status() because we need to wait for it to finish
