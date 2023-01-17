@@ -98,7 +98,7 @@ pub fn from_json(json_parsed: &JsonValue) -> Program {
     let mut prog: Program = Default::default();
 
     prog.name = json_parsed["name"].clone().to_string();
-    prog.installation = installation::from_json(json_parsed["install"].clone());
+    prog.installation = installation::from_json(json_parsed["installation"].clone());
     prog.configuration = configuration::from_json(json_parsed["configuration"].clone());
     prog.status = prog.check();
     prog.dependencies = util::build_dependency_list(json_parsed["dependencies"].clone());
