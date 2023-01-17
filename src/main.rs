@@ -30,7 +30,7 @@ fn programm_routine(file_contents: String) {
     let programms = program::as_vec_from_json(json_parsed);
 
     clear();
-    // println!("{0:#?}", programms.clone());
+    println!("{0:#?}", programms.clone());
 
 
     println!("Programms installed:\n");

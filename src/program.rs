@@ -4,9 +4,8 @@ use json::JsonValue;
 
 pub mod util;
 pub mod display;
+pub mod instructionset;
 pub mod steps;
-pub mod configuration;
-pub mod installation;
 
 #[derive(Default, Debug, PartialEq, Clone)]
 pub enum Status {
@@ -18,8 +17,8 @@ pub enum Status {
 pub struct Program {
     status: Status,
     name: String,
-    installation: installation::Installation,
-    configuration: configuration::Configuration,
+    installation: instructionset::InstructionSet,
+    configuration: instructionset::InstructionSet,
     dependencies: Vec<Program>,
 }
 
@@ -98,8 +97,8 @@ pub fn from_json(json_parsed: &JsonValue) -> Program {
     let mut prog: Program = Default::default();
 
     prog.name = json_parsed["name"].clone().to_string();
-    prog.installation = installation::from_json(json_parsed["installation"].clone());
-    prog.configuration = configuration::from_json(json_parsed["configuration"].clone());
+    prog.installation = instructionset::from_json(json_parsed["installation"].clone());
+    prog.configuration = instructionset::from_json(json_parsed["configuration"].clone());
     prog.status = prog.check();
     prog.dependencies = util::build_dependency_list(json_parsed["dependencies"].clone());
     

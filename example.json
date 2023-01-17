@@ -3,26 +3,20 @@
         {
             "name": "fish",
             "installation": {
-                "Fedora Linux,Nobara": {
-                    "steps": [
-                        "sudo dnf install -y fish"
-                    ]
-                },
-                "Ubuntu,Debian GNU/Linux": {
-                    "steps": [
-                        "sudo apt-get install -y software-properties-common apt-utils",
-                        "sudo apt-add-repository ppa:fish-shell/release-3",
-                        "sudo apt update",
-                        "sudo apt-get install -y fish"
-                    ]
-                }
+                "Fedora Linux,Nobara": [
+                    "sudo dnf install -y fish"
+                ],
+                "Ubuntu,Debian GNU/Linux": [
+                    "sudo apt-get install -y software-properties-common apt-utils",
+                    "sudo apt-add-repository ppa:fish-shell/release-3",
+                    "sudo apt update",
+                    "sudo apt-get install -y fish"
+                ]
             },
             "configuration": {
-                "*": {
-                    "steps": [
-                        "chsh -s /usr/bin/fish"
-                    ]
-                }
+                "*": [
+                    "chsh -s /usr/bin/fish"
+                ]
             },
             "dependencies": {
                 "programs": []
