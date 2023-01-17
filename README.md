@@ -1,15 +1,15 @@
-# FTI
+# ginst
 
-ginst short for (generic installer) a Linux only tool used to install programs according to self written configurations.
+ginst (short for generic installer) a Tool used to install programs according to self written configurations.
 
 The tool takes a `programs.json` file and tries to execute the commands given.
 
-## Prerequisites
+Note: It's currently only tested on Linux.
+
+## Requirements
 
 -  rust (cargo)
 -  git
-
-Other tools like curl will be installed automatically.
 
 ## Installation (as of now)
 
