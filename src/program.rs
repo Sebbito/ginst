@@ -1,6 +1,6 @@
 use std::process::Command;
 use crate::program::steps::Steps;
-use fti::get_dist;
+use ginst::get_dist;
 
 pub mod util;
 pub mod display;
@@ -57,20 +57,19 @@ impl Program {
     }
     
     fn install(&self) {
-        let os = get_dist();
-        if self.status == Status::Missing {
-            if self.install.len() != 0 {
-                for instruction in self.install.clone() {
-                    match instruction.clone().dists {
-                        os => {
-                            println!("Installing programm {}...", self.name);
-                            instruction.execute();
-                        }
+        let current_dist = get_dist();
+        if self.status == Status::Missing && self.install.len() != 0 {
+            for instruction in self.install.clone() {
+                for dist in instruction.dists.clone() {
+                    if dist == current_dist {
+                        instruction.execute();
+                        return
                     }
                 }
-            } else {
-                println!("No installation instructions for program '{}' given.", self.name);
             }
+            println!("No installation instructions for '{}' given", current_dist);
+        } else {
+            println!("No installation instructions for program '{}' given.", self.name);
         }
     }
 
