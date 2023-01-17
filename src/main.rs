@@ -53,7 +53,7 @@ fn config_routine() {
 }
 
 fn main() {
-    env::set_var("RUST_BACKTRACE", "full");
+    // env::set_var("RUST_BACKTRACE", "full");
 
     programm_routine();
     config_routine();
