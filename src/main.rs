@@ -35,7 +35,6 @@ fn programm_routine() {
             .read_line(&mut input)
             .expect("Could not read input");
 
-        // println!("{0:#?}", input);
         if input == "\n" || input == "Y" || input == "y" {
             install_missing(programms.clone());
         }
