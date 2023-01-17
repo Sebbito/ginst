@@ -1,8 +1,8 @@
 # ginst
 
-ginst (short for generic installer) a Tool used to install programs according to self written configurations.
+**ginst** (short for generic installer) a tool used to install programs according to self written configurations.
 
-The tool takes a `programs.json` file and tries to execute the commands given.
+The tool takes a `.json` file and tries to execute the commands given.
 
 Note: It's currently only tested on Linux.
 
@@ -17,14 +17,22 @@ Note: It's currently only tested on Linux.
 git clone https://github.com/Sebbito/FTI.git
 cd ginst/
 cargo build
-sudo cp ./target/debug/ginst /bin/
+sudo cp ./target/debug/ginst ~/.local/bin/
 ```
+
+Info: This assumes that `~/.local/bin/` is in your PATH.
+
+## Usage
+
+`ginst path/to/programs.json`
+
+...it really can't do more than that as of now.
 
 ## Configuring
 
-Right now the only way to configure the tool is through the `programs.json` file (which has to be in the working dir).
+Right now the only way to configure the tool is through the `programs.json` file (which has to be in the working dir). There you can specify a program with installations per distribution and dependencies.
 
-There you can specify a program with installations per distribution and dependencies.
+See the `example.json` on how `ginst` expects the `.json` to look like.
 
 The `.json` file has the following structure:
 
@@ -41,7 +49,15 @@ Where each program has a structure of:
 ```json
 {
     "name": "<name>",
-    "install": {
+    "installation": {
+        "<dist-name1>,<dist-name2>":{
+            "steps": [
+                "<bash-command1>",
+                "<bash-command2>"
+            ]
+        }
+    },
+    "configuration": {
         "<dist-name1>,<dist-name2>":{
             "steps": [
                 "<bash-command1>",
@@ -57,11 +73,11 @@ Where each program has a structure of:
 }
 ```
 
-As you can see, the dependencies attribute is also just a list of programs, meaning you can nest this as deep as you want to.
+Some things that are worth noting:
 
-Also there is the option to specify multiple distributions in one line separated by commas for which the installation instructions should be executed.
-
-You can also specify multiple commands for installing.
+-  The dependencies attribute is also just a list of programs, meaning you can add as many dependencies and nest this as deep as you want to.
+-  Also there is the option to specify multiple distributions in one line separated by commas **!without spaces!** for which the installation instructions apply. You can also use a '\*' instead of a regular distribution name to execute the steps for all distros. The distribution will be read out of `/etc/os-release` so make sure you name it like you see it in there or like the list further down.
+-  You can specify multiple commands for installing or configuring.
 
 ## Troubleshooting
 
@@ -70,3 +86,13 @@ Q: The programm doesn't start with the error:
 `Could not parse json file. Maybe you forgot a comma somewhere?`
 
 A: Well the answer is right there. The json could not be parsed. Make sure that you follow the outlined structure and have no syntax error.
+
+## os-release names
+
+Make sure you use one of these in your `.json`:
+
+- Fedora Linux
+- Ubuntu
+- Debian GNU/Linux
+- openSUSE Tumbleweed
+- etc.
