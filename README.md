@@ -50,20 +50,16 @@ Where each program has a structure of:
 {
     "name": "<name>",
     "installation": {
-        "<dist-name1>,<dist-name2>":{
-            "steps": [
-                "<bash-command1>",
-                "<bash-command2>"
-            ]
-        }
+        "<dist-name1>,<dist-name2>": [
+            "<bash-command1>",
+            "<bash-command2>"
+        ]
     },
     "configuration": {
-        "<dist-name1>,<dist-name2>":{
-            "steps": [
-                "<bash-command1>",
-                "<bash-command2>"
-            ]
-        }
+        "<dist-name1>,<dist-name2>": [
+            "<bash-command1>",
+            "<bash-command2>"
+        ]
     },
     "dependencies": {
         "programs": [
