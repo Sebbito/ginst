@@ -3,10 +3,13 @@ use json::JsonValue::{self, Null};
 use crate::program::steps::Steps;
 use crate::program::steps;
 
+/*
+* This package provides utility functions for the Program Struct like creating a Vector of
+* programs, building the depenency list and so on.
+*/
 
-pub fn build_dependacy_list(dependencies: JsonValue) -> Vec<Program> {
+pub fn build_dependency_list(dependencies: JsonValue) -> Vec<Program> {
     if dependencies != Null {
-        // println!("Building dependacies with {0:#?}", dependencies.clone());
         return as_vec_from_json(dependencies);
     } else {
         vec![]
@@ -17,9 +20,6 @@ pub fn from_json(json_parsed: &JsonValue) -> Program {
     let mut prog: Program = Default::default();
     let mut install_vec: Vec<Steps> = vec![];
 
-    // for member in json_parsed["install"].clone().entries() {
-    //     println!("{0:#?}", member);
-    // }
     let s_vec = steps::from_json(json_parsed["install"].clone());
     install_vec.append(&mut s_vec.clone());
     
@@ -28,7 +28,7 @@ pub fn from_json(json_parsed: &JsonValue) -> Program {
     prog.status = prog.check();
 
     if json_parsed["dependencies"] != Null {
-        prog.dependencies = build_dependacy_list(json_parsed["dependencies"].clone());
+        prog.dependencies = build_dependency_list(json_parsed["dependencies"].clone());
     } else {
         prog.dependencies = vec![];
     }
@@ -40,12 +40,9 @@ pub fn as_vec_from_json(json_parsed: JsonValue) -> Vec<Program>{
     let mut programs: Vec<Program> = vec![];
 
     for program in json_parsed["programs"].members() {
-        // println!("{0:#?}", programm.clone());
-        // println!("{0:#?}", os.clone());
         programs.push(from_json(program));
     }
     
-    // println!("{0:#?}", programms.clone());
     return programs;
 }
 
