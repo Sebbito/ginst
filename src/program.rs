@@ -61,9 +61,11 @@ impl Program {
         if self.status == Status::Missing {
             if self.install.len() != 0 {
                 for instruction in self.install.clone() {
-
                     match instruction.clone().dists {
-                        os => instruction.execute()
+                        os => {
+                            println!("Installing programm {}...", self.name);
+                            instruction.execute();
+                        }
                     }
                 }
             } else {
