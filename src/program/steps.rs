@@ -1,9 +1,13 @@
 use std::process::Command;
 use json::JsonValue;
 
+/*
+ * Base Steps struct with implementations for functionality.
+ */
+
 #[derive(Debug, Default, Clone)]
 pub struct Steps {
-    pub dist: String,
+    pub dists: Vec<String>, // instructions can be for multiple distributions
     steps: Vec<String>
 }
 
@@ -31,12 +35,19 @@ impl Steps {
 pub fn from_json(json_parsed: JsonValue) -> Vec<Steps> {
     let mut steps_vec: Vec<Steps> = vec![];
 
-    for (dist, steps) in json_parsed.clone().entries() {
-        let mut s: Vec<String> = vec![];
-        for step in steps["steps"].members() {
-            s.push(step.to_string());
+    for (raw_dist, raw_steps) in json_parsed.clone().entries() {
+        let mut dists: Vec<String> = vec![];
+        let splits = raw_dist.clone().split(",");
+
+        for split in splits {
+            dists.push(split.to_string());
         }
-        steps_vec.push(Steps { dist: dist.to_string(), steps: s });
+
+        let mut steps: Vec<String> = vec![];
+        for step in raw_steps["steps"].members() {
+            steps.push(step.to_string());
+        }
+        steps_vec.push(Steps { dists, steps });
     }
 
     steps_vec

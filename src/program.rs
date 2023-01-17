@@ -22,10 +22,6 @@ pub struct Program {
 
 impl Program {
     fn is_installed(&self) -> bool {
-        /* 
-         * short function returning true if the status is `Installed` and the dependecies are also
-         * `Installed`
-         */
         if self.status == Status::Installed && self.dependencies_installed() {
             true
         } else {
@@ -61,13 +57,13 @@ impl Program {
     }
     
     fn install(&self) {
+        let os = get_dist();
         if self.status == Status::Missing {
-            // println!("{0:#?}", prog.clone());
-
             if self.install.len() != 0 {
                 for instruction in self.install.clone() {
-                    if instruction.dist == get_dist() {
-                        instruction.execute();
+
+                    match instruction.clone().dists {
+                        os => instruction.execute()
                     }
                 }
             } else {
@@ -91,7 +87,7 @@ impl Program {
 
     fn print_dependacies(&self) {
         for dep in self.dependencies.clone() {
-            print!("  ");
+            print!("  "); // indent by 1 block
             dep.print_status();
         }
     }
