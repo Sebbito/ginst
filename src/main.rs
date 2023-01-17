@@ -1,7 +1,7 @@
 use std::path::Path;
 use std::{fs, io, env};
 use std::process::Command;
-use program::util::{as_vec_from_json, count_missing, install_missing};
+use program::util;
 use program::display::print_all;
 
 pub mod program;
@@ -17,7 +17,7 @@ fn programm_routine() {
     let json_parsed = json::parse(&file_contents)
                         .expect("Could not parse json file. Maybe you forgot a comma somewhere?");
 
-    let programms = as_vec_from_json(json_parsed);
+    let programms = util::as_vec_from_json(json_parsed);
 
     // println!("{0:#?}", programms.clone());
 
@@ -26,7 +26,7 @@ fn programm_routine() {
     println!("Programms installed:\n");
     print_all(programms.clone());
 
-    if count_missing(programms.clone()) > 0 {
+    if util::count_missing(programms.clone()) > 0 {
         println!("Do you wish to install all missing programms?\n(Y/n)");
 
         let mut input = String::new();
@@ -36,7 +36,7 @@ fn programm_routine() {
             .expect("Could not read input");
 
         if input == "\n" || input == "Y" || input == "y" {
-            install_missing(programms.clone());
+            util::install_missing(programms.clone());
         }
     }
 }
