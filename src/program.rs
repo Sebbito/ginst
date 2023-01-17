@@ -1,10 +1,12 @@
 use std::process::Command;
-use crate::program::steps::Steps;
 use ginst::get_dist;
+use json::JsonValue;
 
 pub mod util;
 pub mod display;
 pub mod steps;
+pub mod configuration;
+pub mod installation;
 
 #[derive(Default, Debug, PartialEq, Clone)]
 pub enum Status {
@@ -16,7 +18,8 @@ pub enum Status {
 pub struct Program {
     status: Status,
     name: String,
-    install: Vec<Steps>,
+    installation: installation::Installation,
+    configuration: configuration::Configuration,
     dependencies: Vec<Program>,
 }
 
@@ -58,14 +61,11 @@ impl Program {
     
     fn install(&self) {
         let current_dist = get_dist();
-        if self.status == Status::Missing && self.install.len() != 0 {
-            for instruction in self.install.clone() {
-                for dist in instruction.dists.clone() {
-                    if dist == current_dist {
-                        instruction.execute();
-                        return
-                    }
-                }
+        if self.status == Status::Missing && self.installation.len() != 0 {
+            // omg this is so nice
+            let installation_steps = self.installation.for_dist(current_dist.clone());
+            if installation_steps.is_some() {
+                installation_steps.unwrap().execute();
             }
             println!("No installation instructions for '{}' given", current_dist);
         } else {
@@ -73,7 +73,7 @@ impl Program {
         }
     }
 
-    fn print_all(&self) {
+    fn print(&self) {
         self.print_status();
         self.print_dependacies();
     }
@@ -92,4 +92,26 @@ impl Program {
             dep.print_status();
         }
     }
+}
+
+pub fn from_json(json_parsed: &JsonValue) -> Program {
+    let mut prog: Program = Default::default();
+
+    prog.name = json_parsed["name"].clone().to_string();
+    prog.installation = installation::from_json(json_parsed["install"].clone());
+    prog.configuration = configuration::from_json(json_parsed["configuration"].clone());
+    prog.status = prog.check();
+    prog.dependencies = util::build_dependency_list(json_parsed["dependencies"].clone());
+    
+    prog
+}
+
+pub fn as_vec_from_json(json_parsed: JsonValue) -> Vec<Program>{
+    let mut programs: Vec<Program> = vec![];
+
+    for program in json_parsed["programs"].members() {
+        programs.push(from_json(program));
+    }
+    
+    return programs;
 }
