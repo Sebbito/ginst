@@ -1,4 +1,10 @@
 use std::process::Command;
+use crate::program::steps::Steps;
+use fti::get_dist;
+
+pub mod util;
+pub mod display;
+pub mod steps;
 
 #[derive(Default, Debug, PartialEq, Clone)]
 pub enum Status {
@@ -10,12 +16,16 @@ pub enum Status {
 pub struct Program {
     status: Status,
     name: String,
-    install: String,
+    install: Vec<Steps>,
     dependencies: Vec<Program>,
 }
 
 impl Program {
     fn is_installed(&self) -> bool {
+        /* 
+         * short function returning true if the status is `Installed` and the dependecies are also
+         * `Installed`
+         */
         if self.status == Status::Installed && self.dependencies_installed() {
             true
         } else {
@@ -24,6 +34,7 @@ impl Program {
     }
 
     fn check(&self) -> Status {
+        /* Performs a check if the program is installed */
         let status = Command::new("command")
                         .args(["-v", &self.name])
                         .status()
@@ -53,17 +64,11 @@ impl Program {
         if self.status == Status::Missing {
             // println!("{0:#?}", prog.clone());
 
-            if self.install != "null" {
-                let install: Vec<&str> = self.install.split(" ").collect();
-                let command = install[0].clone();
-                let args: Vec<&str>= install.into_iter().skip(1).collect();
-
-                // println!("{0:#?}", command);
-                // println!("{0:#?}", args);
-
-                let status = Command::new(command).args(args).status().expect("Failed to execute install command");
-                if !status.success() {
-                    panic!("Something is fucky wucky");
+            if self.install.len() != 0 {
+                for instruction in self.install.clone() {
+                    if instruction.dist == get_dist() {
+                        instruction.execute();
+                    }
                 }
             } else {
                 println!("No installation instructions for program '{}' given.", self.name);
@@ -91,72 +96,3 @@ impl Program {
         }
     }
 }
-
-pub mod util {
-    use crate::program::Program;
-    use json::JsonValue::{self, Null};
-    use fti::get_dist;
-
-    pub fn build_dependacy_list(dependencies: JsonValue) -> Vec<Program> {
-        if dependencies != Null {
-            // println!("Building dependacies with {0:#?}", dependencies.clone());
-            return generate_prog_vec(dependencies);
-        } else {
-            vec![]
-        }
-    }
-
-    pub fn generate_prog_vec(json_parsed: JsonValue) -> Vec<Program>{
-        let mut programs: Vec<Program> = vec![];
-        let os = get_dist();
-
-        for program in json_parsed["programs"].members() {
-            // println!("{0:#?}", programm.clone());
-            // println!("{0:#?}", os.clone());
-
-            let mut prog: Program = Default::default();
-
-            prog.name = program["name"].clone().to_string();
-            prog.install = program["install"][os.clone()].clone().to_string();
-            prog.status = prog.check();
-            if program["dependencies"] != Null {
-                prog.dependencies = build_dependacy_list(program["dependencies"].clone());
-            } else {
-                prog.dependencies = vec![];
-            }
-
-            programs.push(prog);
-        }
-        
-        // println!("{0:#?}", programms.clone());
-        return programs;
-    }
-
-    pub fn install_missing(programs: Vec<Program>) {
-        for prog in programs {
-            prog.install();
-        }
-    }
-
-    pub fn count_missing(programs: Vec<Program>) -> u8 {
-        let mut counter = 0;
-        for p in programs {
-            if !p.is_installed() {
-                counter += 1;
-            }
-        }
-        counter
-    }
-
-}
-
-pub mod display {
-    use crate::program::Program;
-    pub fn print_all(programs: Vec<Program>) {
-        for prog in programs {
-            prog.print_all();
-        }
-    }
-}
-
-

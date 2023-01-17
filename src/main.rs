@@ -1,8 +1,8 @@
 use std::path::Path;
 use std::{fs, io, env};
 use std::process::Command;
-use crate::program::util::{generate_prog_vec, count_missing, install_missing};
-use crate::program::display::print_all;
+use program::util::{as_vec_from_json, count_missing, install_missing};
+use program::display::print_all;
 
 pub mod program;
 
@@ -17,11 +17,11 @@ fn programm_routine() {
     let json_parsed = json::parse(&file_contents)
                         .expect("Could not parse json file. Maybe you forgot a comma somewhere?");
 
-    let programms = generate_prog_vec(json_parsed);
+    let programms = as_vec_from_json(json_parsed);
 
-    //
     // println!("{0:#?}", programms.clone());
-    clear();
+
+    // clear();
 
     println!("Programms installed:\n");
     print_all(programms.clone());
