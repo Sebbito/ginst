@@ -1,12 +1,12 @@
 # FTI
 
-FTI or First Time Install is (currently) a Linux only tool used by me to install all the command line programs that i usually need with every Linux distro.
+ginst short for (generic installer) a Linux only tool used to install programs according to self written configurations.
 
-The tool takes a `programs.json` file and tries to execute the commands given in the configuration
+The tool takes a `programs.json` file and tries to execute the commands given.
 
 ## Prerequisites
 
--  cargo
+-  rust (cargo)
 -  git
 
 Other tools like curl will be installed automatically.
@@ -15,13 +15,14 @@ Other tools like curl will be installed automatically.
 
 ```bash
 git clone https://github.com/Sebbito/FTI.git
-cd FTI/
-cargo run
+cd ginst/
+cargo build
+sudo cp ./target/debug/ginst /bin/
 ```
 
 ## Configuring
 
-Right now the only way to configure the tool is through the `programs.json` file.
+Right now the only way to configure the tool is through the `programs.json` file (which has to be in the working dir).
 
 There you can specify a program with installations per distribution and dependencies.
 
@@ -65,5 +66,7 @@ You can also specify multiple commands for installing.
 ## Troubleshooting
 
 Q: The programm doesn't start with the error:
+
 `Could not parse json file. Maybe you forgot a comma somewhere?`
+
 A: Well the answer is right there. The json could not be parsed. Make sure that you follow the outlined structure and have no syntax error.
