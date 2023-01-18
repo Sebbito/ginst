@@ -7,7 +7,7 @@ pub mod display;
 pub mod instructionset;
 pub mod steps;
 
-#[derive(Default, Debug, PartialEq, Clone)]
+#[derive(Default, Debug, PartialEq, Clone, Copy)]
 pub enum Status {
     Installed,
     #[default] Missing,
@@ -45,6 +45,14 @@ impl Program {
         }
     }
 
+    pub fn has_configuration_steps(&self) -> bool {
+        return self.configuration.len() != 0;
+    }
+
+    pub fn has_installation_steps(&self) -> bool {
+        return self.installation.len() != 0;
+    }
+
     fn dependencies_installed(&self) -> bool {
         let mut ret = true;
 
@@ -58,17 +66,33 @@ impl Program {
         ret
     }
     
-    fn install(&self) {
+    pub fn install(&self) {
         let current_dist = get_dist();
-        if self.status == Status::Missing && self.installation.len() != 0 {
+        if !self.is_installed() && self.has_installation_steps() {
             // omg this is so nice
             let installation_steps = self.installation.for_dist(current_dist.clone());
             if installation_steps.is_some() {
                 installation_steps.unwrap().execute();
+            } else {
+                println!("No installation instructions for '{}' given", current_dist);
             }
-            println!("No installation instructions for '{}' given", current_dist);
         } else {
             println!("No installation instructions for program '{}' given.", self.name);
+        }
+    }
+
+    pub fn configure(&self) {
+        let current_dist = get_dist();
+        if self.has_configuration_steps() {
+            // omg this is so nice
+            let configuration_steps = self.configuration.for_dist(current_dist.clone());
+            if configuration_steps.is_some() {
+                configuration_steps.unwrap().execute();
+            } else {
+                println!("No configuration instructions for '{}' given", current_dist);
+            }
+        } else {
+            println!("No configuration instructions for program '{}' given.", self.name);
         }
     }
 
@@ -87,7 +111,7 @@ impl Program {
 
     fn print_dependacies(&self) {
         for dep in self.dependencies.clone() {
-            print!("  "); // indent by 1 block
+            print!("    "); // indent by 1 block
             dep.print_status();
         }
     }
