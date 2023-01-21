@@ -16,7 +16,7 @@ Note: It's currently only tested on Linux.
 ```bash
 git clone https://github.com/Sebbito/FTI.git
 cd ginst/
-cargo build
+cargo build -r
 sudo cp ./target/debug/ginst ~/.local/bin/
 ```
 
@@ -24,7 +24,7 @@ Info: This assumes that `~/.local/bin/` is in your PATH.
 
 ## Usage
 
-`ginst path/to/programs.json`
+`ginst --file path/to/programs.json`
 
 ...it really can't do more than that as of now.
 
