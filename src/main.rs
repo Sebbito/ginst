@@ -1,8 +1,6 @@
 use std::path::Path;
 use std::{fs, io, env};
 use std::process::Command;
-use program::util;
-use program::display::print_all;
 
 pub mod program;
 
@@ -34,9 +32,9 @@ fn programm_routine(file_contents: String) {
 
 
     println!("Programms installed:\n");
-    print_all(programms.clone());
+    programms.print_statuses(0);
 
-    if util::count_missing(programms.clone()) > 0 {
+    if !programms.are_installed() {
         println!("Do you wish to install all missing programms?\n(Y/n)");
 
         let mut input = String::new();
@@ -46,7 +44,7 @@ fn programm_routine(file_contents: String) {
             .expect("Could not read input");
 
         if input == "\n" || input == "Y" || input == "y" {
-            util::install_missing(programms.clone());
+            programms.install_missing();
         }
     }
 }
@@ -68,7 +66,7 @@ fn help() {
 
 fn main() {
     // env::set_var("RUST_BACKTRACE", "full");
- let args: Vec<String> = env::args().collect();
+     let args: Vec<String> = env::args().collect();
 
     match args.len() {
         // no arguments passed

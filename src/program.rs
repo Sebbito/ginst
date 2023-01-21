@@ -1,9 +1,7 @@
 use std::process::Command;
 use ginst::get_dist;
-use json::JsonValue;
+use json::JsonValue::{self, Null};
 
-pub mod util;
-pub mod display;
 pub mod instructionset;
 pub mod steps;
 
@@ -19,12 +17,12 @@ pub struct Program {
     name: String,
     installation: instructionset::InstructionSet,
     configuration: instructionset::InstructionSet,
-    dependencies: Vec<Program>,
+    dependencies: ProgramCollection,
 }
 
 impl Program {
     fn is_installed(&self) -> bool {
-        if self.status == Status::Installed && self.dependencies_installed() {
+        if self.status == Status::Installed && self.dependencies.are_installed() {
             true
         } else {
             false
@@ -44,19 +42,6 @@ impl Program {
             Status::Missing
         }
     }
-
-    fn dependencies_installed(&self) -> bool {
-        let mut ret = true;
-
-        if !self.dependencies.is_empty() {
-            for val in self.dependencies.clone().iter_mut().map(|d| d.is_installed()) {
-                if val == false {
-                    ret = false;
-                }
-            }
-        }
-        ret
-    }
     
     fn install(&self) {
         let current_dist = get_dist();
@@ -72,25 +57,72 @@ impl Program {
         }
     }
 
-    fn print(&self) {
+    fn print(&self, indent_level: u8) {
         self.print_status();
-        self.print_dependacies();
+        self.dependencies.print_statuses(indent_level + 1);
     }
 
     fn print_status(&self) {
         if self.is_installed() {
-            println!("[✓] {}", self.name)
+            println!("[✓] {}", self.name);
         } else {
-            println!("[⤫] {}", self.name)
+            println!("[⤫] {}", self.name);
+        }
+    }
+}
+
+
+#[derive(Default, Debug, Clone)]
+pub struct ProgramCollection {
+    programs: Vec<Program>
+}
+
+impl ProgramCollection {
+    pub fn are_installed(&self) -> bool {
+        if !self.is_empty() {
+            for val in self.programs.clone().iter_mut().map(|d| d.is_installed()) {
+                if val == false {
+                    return false;
+                }
+            }
+        }
+
+        true
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.programs.len() == 0
+    }
+
+    pub fn print_statuses(&self, indent_level: u8) {
+        for program in self.programs.clone() {
+            for _ in 0..indent_level {
+                print!("  "); // indent by 1 block
+            }
+            program.print(indent_level);
         }
     }
 
-    fn print_dependacies(&self) {
-        for dep in self.dependencies.clone() {
-            print!("  "); // indent by 1 block
-            dep.print_status();
+    pub fn install_missing(&self) {
+        for prog in self.programs.clone() {
+            prog.install();
         }
     }
+
+    pub fn count_missing(&self) -> u8 {
+        let mut counter = 0;
+        for p in self.programs.clone() {
+            if !p.is_installed() {
+                counter += 1;
+            }
+        }
+        counter
+    }
+
+    pub fn push(&mut self, program: Program) {
+        self.programs.push(program);
+    }
+
 }
 
 pub fn from_json(json_parsed: &JsonValue) -> Program {
@@ -100,16 +132,18 @@ pub fn from_json(json_parsed: &JsonValue) -> Program {
     prog.installation = instructionset::from_json(json_parsed["installation"].clone());
     prog.configuration = instructionset::from_json(json_parsed["configuration"].clone());
     prog.status = prog.check();
-    prog.dependencies = util::build_dependency_list(json_parsed["dependencies"].clone());
+    prog.dependencies = as_vec_from_json(json_parsed["dependencies"].clone());
     
     prog
 }
 
-pub fn as_vec_from_json(json_parsed: JsonValue) -> Vec<Program>{
-    let mut programs: Vec<Program> = vec![];
+pub fn as_vec_from_json(json_parsed: JsonValue) -> ProgramCollection{
+    let mut programs: ProgramCollection = Default::default();
 
-    for program in json_parsed["programs"].members() {
-        programs.push(from_json(program));
+    if json_parsed != Null {
+        for program in json_parsed["programs"].members() {
+            programs.push(from_json(program));
+        }
     }
     
     return programs;
