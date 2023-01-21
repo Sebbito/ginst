@@ -20,12 +20,11 @@ impl Steps {
 
             let output = Command::new("bash").arg("-c").arg(step).output().expect("Could not execute command");
 
+            println!("{}", String::from_utf8(output.stdout).unwrap());
+
             if !output.status.success() {
-                if cfg!(debug_assertions) {
-                    println!("{0:#?}", output.clone());
-                }
                 println!("{}", String::from_utf8(output.stderr).unwrap());
-                panic!("Installation instruction didn't finish correctly. Aborting")
+                panic!("Instruction didn't finish correctly. Aborting")
             }
         }
     }

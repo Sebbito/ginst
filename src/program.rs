@@ -5,7 +5,7 @@ use json::JsonValue::{self, Null};
 pub mod instructionset;
 pub mod steps;
 
-#[derive(Default, Debug, PartialEq, Clone)]
+#[derive(Default, Debug, PartialEq, Clone, Copy)]
 pub enum Status {
     Installed,
     #[default] Missing,
@@ -42,27 +42,51 @@ impl Program {
             Status::Missing
         }
     }
-    
-    fn install(&self) {
+
+    pub fn has_configuration_steps(&self) -> bool {
+        return self.configuration.len() != 0;
+    }
+
+    pub fn has_installation_steps(&self) -> bool {
+        return self.installation.len() != 0;
+    }
+
+    pub fn install(&self) {
         let current_dist = get_dist();
-        if self.status == Status::Missing && self.installation.len() != 0 {
+        if !self.is_installed() && self.has_installation_steps() {
             // omg this is so nice
             let installation_steps = self.installation.for_dist(current_dist.clone());
             if installation_steps.is_some() {
                 installation_steps.unwrap().execute();
+            } else {
+                println!("No installation instructions for '{}' given", current_dist);
             }
-            println!("No installation instructions for '{}' given", current_dist);
         } else {
             println!("No installation instructions for program '{}' given.", self.name);
         }
     }
 
-    fn print(&self, indent_level: u8) {
+    pub fn configure(&self) {
+        let current_dist = get_dist();
+        if self.has_configuration_steps() {
+            // omg this is so nice
+            let configuration_steps = self.configuration.for_dist(current_dist.clone());
+            if configuration_steps.is_some() {
+                configuration_steps.unwrap().execute();
+            } else {
+                println!("No configuration instructions for '{}' given", current_dist);
+            }
+        } else {
+            println!("No configuration instructions for program '{}' given.", self.name);
+        }
+    }
+
+    pub fn print(&self, indent_level: u8) {
         self.print_status();
         self.dependencies.print_statuses(indent_level + 1);
     }
 
-    fn print_status(&self) {
+    pub fn print_status(&self) {
         if self.is_installed() {
             println!("[✓] {}", self.name);
         } else {
@@ -74,10 +98,15 @@ impl Program {
 
 #[derive(Default, Debug, Clone)]
 pub struct ProgramCollection {
-    programs: Vec<Program>
+    pub programs: Vec<Program>
 }
 
 impl ProgramCollection {
+
+    pub fn len(&self) -> usize {
+        self.programs.len()
+    }
+
     pub fn are_installed(&self) -> bool {
         if !self.is_empty() {
             for val in self.programs.clone().iter_mut().map(|d| d.is_installed()) {
@@ -132,12 +161,12 @@ pub fn from_json(json_parsed: &JsonValue) -> Program {
     prog.installation = instructionset::from_json(json_parsed["installation"].clone());
     prog.configuration = instructionset::from_json(json_parsed["configuration"].clone());
     prog.status = prog.check();
-    prog.dependencies = as_vec_from_json(json_parsed["dependencies"].clone());
+    prog.dependencies = collection_from_json(json_parsed["dependencies"].clone());
     
     prog
 }
 
-pub fn as_vec_from_json(json_parsed: JsonValue) -> ProgramCollection{
+pub fn collection_from_json(json_parsed: JsonValue) -> ProgramCollection{
     let mut programs: ProgramCollection = Default::default();
 
     if json_parsed != Null {
