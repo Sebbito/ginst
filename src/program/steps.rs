@@ -12,13 +12,19 @@ pub struct Steps {
 
 impl Steps {
     pub fn execute(&self) {
-        for cmd in self.steps.clone() {
-            let step: Vec<&str> = cmd.split(" ").collect();
-            let function = step[0].clone();
-            let args: Vec<&str>=step.into_iter().skip(1).collect();
-            let status = Command::new(function).args(args).status().expect("Could not execute command");
+        for step in self.steps.clone() {
 
-            if !status.success() {
+            if cfg!(debug_assertions) {
+                println!("{0:#?}", step.clone());
+            }
+
+            let output = Command::new("bash").arg("-c").arg(step).output().expect("Could not execute command");
+
+            if !output.status.success() {
+                if cfg!(debug_assertions) {
+                    println!("{0:#?}", output.clone());
+                }
+                println!("{}", String::from_utf8(output.stderr).unwrap());
                 panic!("Installation instruction didn't finish correctly. Aborting")
             }
         }

@@ -1,8 +1,18 @@
-use std::path::Path;
+// use std::path::Path;
 use std::{fs, io, env};
 use std::process::Command;
+use clap::Parser;
 
 pub mod program;
+
+/// Simple program to greet a person
+#[derive(Parser, Debug)]
+#[command(author, version, about, long_about = None)]
+struct Args {
+   /// Path to the json file holding program information
+   #[arg(short, long)]
+   file: String,
+}
 
 fn clear() {
     // status() because we need to wait for it to finish
@@ -49,70 +59,24 @@ fn programm_routine(file_contents: String) {
     }
 }
 
-fn config_routine() {
-    let home = env::var("HOME").expect("What the fuck how is there no home var?");
-    let conf_path: String = format!("{}/.config/.git", home);
-    let path = Path::new(&conf_path).canonicalize().expect("Could not resolve path");
+// fn config_routine() {
+//     let home = env::var("HOME").expect("What the fuck how is there no home var?");
+//     let conf_path: String = format!("{}/.config/.git", home);
+//     let path = Path::new(&conf_path).canonicalize().expect("Could not resolve path");
 
-    println!("{0:#?}", path);
-    if  !path.exists() {
-        println!("Git repo not found in config folder.");
-    }
-}
-
-fn help() {
-    println!("Please supply a path name to the json file.")
-}
+//     println!("{0:#?}", path);
+//     if  !path.exists() {
+//         println!("Git repo not found in config folder.");
+//     }
+// }
 
 fn main() {
-    // env::set_var("RUST_BACKTRACE", "full");
-     let args: Vec<String> = env::args().collect();
-
-    match args.len() {
-        // no arguments passed
-        1 => {
-            println!("Please supply a file path.");
-        },
-        // one argument passed
-        2 => {
-            match args[1].parse::<String>() {
-                Ok(s) => {
-                    programm_routine(get_file_contents(s));
-                },
-                _ => println!("Invalid path given."),
-            }
-        },
-        // // one command and one argument passed
-        // 3 => {
-        //     let cmd = &args[1];
-        //     let num = &args[2];
-        //     // parse the number
-        //     let number: i32 = match num.parse() {
-        //         Ok(n) => {
-        //             n
-        //         },
-        //         Err(_) => {
-        //             eprintln!("error: second argument not an integer");
-        //             help();
-        //             return;
-        //         },
-        //     };
-        //     // parse the command
-        //     match &cmd[..] {
-        //         "increase" => increase(number),
-        //         "decrease" => decrease(number),
-        //         _ => {
-        //             eprintln!("error: invalid command");
-        //             help();
-        //         },
-        //     }
-        // },
-        // all the other cases
-        _ => {
-            // show a help message
-            println!("Invalid or no arguments");
-            help();
-        }
+    if cfg!(debug_assertions) {
+        env::set_var("RUST_BACKTRACE", "1");
     }
-    config_routine();
+
+    let args = Args::parse();
+
+    programm_routine(get_file_contents(args.file));
+    // config_routine();
 }
