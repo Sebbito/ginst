@@ -41,11 +41,11 @@ impl Program {
     }
 
     pub fn has_configuration_steps(&self) -> bool {
-        self.configuration.is_empty()
+        !self.configuration.is_empty()
     }
 
     pub fn has_installation_steps(&self) -> bool {
-        self.installation.is_empty()
+        !self.installation.is_empty()
     }
 
     pub fn install(&self) {
@@ -178,7 +178,6 @@ pub fn collection_from_json(json_parsed: JsonValue) -> ProgramCollection{
 #[cfg(test)]
 mod tests {
     use json;
-
     use super::from_json;
 
     #[test]
