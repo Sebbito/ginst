@@ -20,7 +20,7 @@ fn clear() {
 }
 
 fn get_file_contents(path: String) -> String {
-    let file_contents = if path.is_empty() {
+    let file_contents = if !path.is_empty() {
         fs::read_to_string(path)
                             .expect("Could not find json file. Make sure you are in a directory where theres also the json file.")
     } else {
