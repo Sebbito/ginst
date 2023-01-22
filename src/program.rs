@@ -32,7 +32,8 @@ impl Program {
     fn check(&self) -> Status {
         /* Performs a check if the program is installed */
         let status = Command::new("command")
-                        .args(["-v", &self.name])
+                        .arg("-v")
+                        .arg(&self.name)
                         .status()
                         .expect("Failed to execute.");
 
