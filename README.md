@@ -11,22 +11,15 @@ Note: It's currently only tested on Linux.
 -  rust (cargo)
 -  git
 
-## Installation (as of now)
+## Installation
 
 ```bash
-git clone https://github.com/Sebbito/FTI.git
-cd ginst/
-cargo build -r
-sudo cp ./target/debug/ginst ~/.local/bin/
+cargo install ginst
 ```
-
-Info: This assumes that `~/.local/bin/` is in your PATH.
 
 ## Usage
 
 `ginst --file path/to/programs.json`
-
-...it really can't do more than that as of now.
 
 ## Configuring
 
@@ -77,7 +70,7 @@ Some things that are worth noting:
 
 ## Troubleshooting
 
-Q: The programm doesn't start with the error:
+Q: The program doesn't start with the error:
 
 `Could not parse json file. Maybe you forgot a comma somewhere?`
 
