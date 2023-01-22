@@ -22,11 +22,7 @@ pub struct Program {
 
 impl Program {
     fn is_installed(&self) -> bool {
-        if self.status == Status::Installed && self.dependencies.are_installed() {
-            true
-        } else {
-            false
-        }
+        self.status == Status::Installed && self.dependencies.are_installed()
     }
 
     fn check(&self) -> Status {
@@ -45,11 +41,11 @@ impl Program {
     }
 
     pub fn has_configuration_steps(&self) -> bool {
-        return self.configuration.len() != 0;
+        self.configuration.is_empty()
     }
 
     pub fn has_installation_steps(&self) -> bool {
-        return self.installation.len() != 0;
+        self.installation.is_empty()
     }
 
     pub fn install(&self) {
@@ -57,8 +53,8 @@ impl Program {
         if !self.is_installed() && self.has_installation_steps() {
             // omg this is so nice
             let installation_steps = self.installation.for_dist(current_dist.clone());
-            if installation_steps.is_some() {
-                installation_steps.unwrap().execute();
+            if let Some(steps) = installation_steps {
+                steps.execute();
             } else {
                 println!("No installation instructions for '{}' given", current_dist);
             }
@@ -72,8 +68,8 @@ impl Program {
         if self.has_configuration_steps() {
             // omg this is so nice
             let configuration_steps = self.configuration.for_dist(current_dist.clone());
-            if configuration_steps.is_some() {
-                configuration_steps.unwrap().execute();
+            if let Some(steps) = configuration_steps {
+                steps.execute();
             } else {
                 println!("No configuration instructions for '{}' given", current_dist);
             }
@@ -108,20 +104,20 @@ impl ProgramCollection {
         self.programs.len()
     }
 
+    pub fn is_empty(&self) -> bool {
+        self.programs.is_empty()
+    }
+
     pub fn are_installed(&self) -> bool {
         if !self.is_empty() {
             for val in self.programs.clone().iter_mut().map(|d| d.is_installed()) {
-                if val == false {
+                if !val {
                     return false;
                 }
             }
         }
 
         true
-    }
-
-    pub fn is_empty(&self) -> bool {
-        self.programs.len() == 0
     }
 
     pub fn print_statuses(&self, indent_level: u8) {
@@ -176,7 +172,7 @@ pub fn collection_from_json(json_parsed: JsonValue) -> ProgramCollection{
         }
     }
     
-    return programs;
+    programs
 }
 
 #[cfg(test)]

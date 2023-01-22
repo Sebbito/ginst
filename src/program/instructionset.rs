@@ -22,6 +22,10 @@ impl InstructionSet {
         self.execution_steps.len()
     }
 
+    pub fn is_empty(&self) -> bool {
+        self.execution_steps.is_empty()
+    }
+
     pub fn push(&mut self, step: Steps) {
         self.execution_steps.push(step);
     }
@@ -30,9 +34,9 @@ impl InstructionSet {
 pub fn from_json(json_parsed: JsonValue) -> InstructionSet{
     let mut set: InstructionSet = Default::default();
 
-    for (raw_dist, raw_steps) in json_parsed.clone().entries() {
-        let dists = raw_dist.clone().split(",").map(|s| s.to_string()).collect();
-        let steps = raw_steps.clone().members().map(|m| m.to_string()).collect();
+    for (raw_dist, raw_steps) in json_parsed.entries() {
+        let dists = raw_dist.split(',').map(|s| s.to_string()).collect();
+        let steps = raw_steps.members().map(|m| m.to_string()).collect();
 
         set.execution_steps.push(Steps { dists, steps });
     }

@@ -20,7 +20,7 @@ fn clear() {
 }
 
 fn get_file_contents(path: String) -> String {
-    let file_contents = if path.len() != 0 {
+    let file_contents = if path.is_empty() {
         fs::read_to_string(path)
                             .expect("Could not find json file. Make sure you are in a directory where theres also the json file.")
     } else {
@@ -87,7 +87,7 @@ fn config_routine(file_contents: String) {
         .read_line(&mut input)
         .expect("Could not read input");
 
-    let nr = input.replace("\n", "").replace("\"", "").parse::<u64>().unwrap() as usize;
+    let nr = input.replace(['\n', '"'], "").parse::<u64>().unwrap() as usize;
 
     if nr <= programs.len() {
         programs.programs[nr-1].configure();
@@ -113,5 +113,5 @@ fn main() {
     let args = Args::parse();
 
     programm_routine(get_file_contents(args.file.clone()));
-    config_routine(get_file_contents(args.file.clone()));
+    config_routine(get_file_contents(args.file));
 }
