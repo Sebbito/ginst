@@ -177,3 +177,116 @@ pub fn collection_from_json(json_parsed: JsonValue) -> ProgramCollection{
     
     return programs;
 }
+
+#[cfg(test)]
+mod tests {
+    use json;
+
+    use super::from_json;
+
+    #[test]
+    fn test_from_json() {
+        let prog = "{
+            \"name\": \"topkek\",
+            \"installation\": {
+                \"*\": [
+                    \"echo '#!/bin/bash' >> ~/.local/bin/topkek\",
+                    \"echo 'echo hello :D' >> ~/.local/bin/topkek\",
+                    \"chmod +x ~/.local/bin/topkek\"
+                ]
+            },
+            \"configuration\": {
+                \"*\": [
+                    \"~/.local/bin/topkek\"
+                ]
+            }
+        }";
+        
+        from_json(&json::parse(prog).unwrap());
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_from_json_invalid() {
+        // the missing ',' after name
+        let prog = "{
+            \"name\": \"topkek\"
+            \"installation\": {
+                \"*\": [
+                ]
+            }
+        }";
+        
+        from_json(&json::parse(prog).unwrap());
+    }
+
+
+    #[test]
+    fn test_has_config() {
+        let prog = "{
+            \"name\": \"topkek\",
+            \"configuration\": {
+                \"*\": [
+                    \"~/.local/bin/topkek\"
+                ]
+            }
+        }";
+        
+        let prog = from_json(&json::parse(prog).unwrap());
+        assert!(prog.has_configuration_steps());
+    }
+
+    #[test]
+    fn test_has_no_config() {
+        let prog = "{
+            \"name\": \"topkek\",
+            \"installation\": {
+                \"*\": [
+                    \"echo '#!/bin/bash' >> ~/.local/bin/topkek\",
+                    \"echo 'echo hello :D' >> ~/.local/bin/topkek\",
+                    \"chmod +x ~/.local/bin/topkek\"
+                ]
+            }
+        }";
+        
+        let prog = from_json(&json::parse(prog).unwrap());
+        assert!(prog.has_configuration_steps() == false);
+    }
+    
+    #[test]
+    fn test_has_install() {
+        let prog = "{
+            \"name\": \"topkek\",
+            \"installation\": {
+                \"*\": [
+                    \"echo '#!/bin/bash' >> ~/.local/bin/topkek\",
+                    \"echo 'echo hello :D' >> ~/.local/bin/topkek\",
+                    \"chmod +x ~/.local/bin/topkek\"
+                ]
+            }
+        }";
+        
+        let prog = from_json(&json::parse(prog).unwrap());
+        assert!(prog.has_installation_steps());
+    }
+
+    #[test]
+    fn test_has_no_install() {
+        let prog = "{
+            \"name\": \"topkek\"
+        }";
+        
+        let prog = from_json(&json::parse(prog).unwrap());
+        assert!(prog.has_installation_steps() == false);
+    }
+
+    #[test]
+    fn test_is_installed() {
+        let prog = "{
+            \"name\": \"topkek\"
+        }";
+        
+        let prog = from_json(&json::parse(prog).unwrap());
+        assert!(prog.is_installed() == false);
+    }
+}
