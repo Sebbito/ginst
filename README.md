@@ -9,13 +9,26 @@ Note: It's currently only tested on Linux.
 ## Requirements
 
 -  rust (cargo)
--  git
+-  bash
 
 ## Installation
+
+Ez mode
 
 ```bash
 cargo install ginst
 ```
+
+or if you want to build it yourself:
+
+```bash
+git clone https://github.com/Sebbito/ginst.git
+cd ginst
+carbo build -r
+cp target/release/ginst ~/.local/bin
+```
+
+on the last step you can copy it to any directory that is included in PATH but i suggest you use `.local/bin` for that.
 
 ## Usage
 
@@ -65,8 +78,9 @@ Where each program has a structure of:
 Some things that are worth noting:
 
 -  The dependencies attribute is also just a list of programs, meaning you can add as many dependencies and nest this as deep as you want to.
--  Also there is the option to specify multiple distributions in one line separated by commas **!without spaces!** for which the installation instructions apply. You can also use a '\*' instead of a regular distribution name to execute the steps for all distros. The distribution will be read out of `/etc/os-release` so make sure you name it like you see it in there or like the list further down.
--  You can specify multiple commands for installing or configuring.
+-  Also there is the option to specify multiple distributions in one line separated by commas **!without spaces!** for which the installation instructions apply
+-  You can also use a '\*' instead of a regular distribution name to execute the steps for all distros
+-  The distribution will be read out of `/etc/os-release` so make sure you name it like you see it in there
 
 ## Troubleshooting
 
@@ -76,12 +90,10 @@ Q: The program doesn't start with the error:
 
 A: Well the answer is right there. The json could not be parsed. Make sure that you follow the outlined structure and have no syntax error.
 
-## os-release names
+## Further Help
 
-Make sure you use one of these in your `.json`:
+To get more information, see the [Wiki](https://github.com/Sebbito/ginst/wiki) or see
 
-- Fedora Linux
-- Ubuntu
-- Debian GNU/Linux
-- openSUSE Tumbleweed
-- etc.
+```bash
+ginst --help
+```
