@@ -41,15 +41,15 @@ impl Program {
     }
 
     pub fn has_configuration_steps(&self) -> bool {
-        !self.configuration.is_empty()
+        !self.configuration.is_empty() && self.configuration.len() != 0
     }
 
     pub fn has_installation_steps(&self) -> bool {
-        !self.installation.is_empty()
+        !self.installation.is_empty() && self.installation.len() != 0
     }
 
     pub fn has_dependencies(&self) -> bool {
-        !self.dependencies.is_empty()
+        !self.dependencies.is_empty() && self.dependencies.len() != 0
     }
 
     pub fn install(&self) {
