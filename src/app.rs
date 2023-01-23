@@ -92,6 +92,15 @@ pub fn run_app<B: Backend>(
             .unwrap_or_else(|| Duration::from_secs(0));
         if crossterm::event::poll(timeout)? {
             if let Event::Key(key) = event::read()? {
+                let index = app.items.state.selected();
+                let selected: Option<Program> = {
+                    if index.is_some() {
+                        Some(app.items.items[index.unwrap()].clone())
+                    } else {
+                        None
+                    }
+                };
+
                 match key.code {
                     KeyCode::Char('q') => return Ok(()),
                     KeyCode::Left | KeyCode::Char('h') => {
@@ -103,14 +112,22 @@ pub fn run_app<B: Backend>(
                     KeyCode::Up | KeyCode::Char('k') => app.items.previous(),
                     KeyCode::Right | KeyCode::Char('l') => {
                         // render new app with the selected items' dependencies like a submenu
-                        let selected = app.items.items[app.items.state.selected().unwrap()].clone();
-                        if selected.has_dependencies() {
-                            let deps = selected.dependencies.clone();
+                        if selected.is_some() {
+                            let deps = selected.unwrap().dependencies.clone();
                             let sub_app = App::new(deps.programs);
                             run_app(terminal, sub_app, tick_rate, true);
                         }
                     },
-                    KeyCode::Enter | KeyCode::Char('i') => app.items.items[app.items.state.selected().unwrap()].install(),
+                    KeyCode::Enter | KeyCode::Char('i') => {
+                        if selected.is_some() {
+                            selected.unwrap().install();
+                        }
+                    },
+                    KeyCode::Char('c') => {
+                        if selected.is_some() {
+                            selected.unwrap().configure();
+                        }
+                    },
                     _ => {}
                 }
             }
