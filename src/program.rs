@@ -13,8 +13,8 @@ pub enum Status {
 
 #[derive(Default, Debug, Clone)]
 pub struct Program {
-    status: Status,
-    name: String,
+    pub status: Status,
+    pub name: String,
     installation: instructionset::InstructionSet,
     configuration: instructionset::InstructionSet,
     dependencies: ProgramCollection,
