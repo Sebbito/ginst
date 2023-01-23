@@ -7,7 +7,7 @@ use tui::{
     backend::Backend,
     style::{Color, Modifier, Style},
     text::{Span, Spans},
-    widgets::{Block, Borders, List, ListItem, ListState},
+    widgets::{Block, Borders, List, ListItem, ListState, BorderType},
     Frame, Terminal,
 };
 
@@ -119,9 +119,6 @@ pub fn run_app<B: Backend>(
 }
 
 fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) {
-    // Create two chunks with equal horizontal screen space
-    let rect = f.size();
-
     // Iterate through all elements in the `items` app and append some info to it.
     let items: Vec<ListItem> = app
         .items
@@ -167,7 +164,10 @@ fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) {
                 .bg(Color::Gray)
                 .add_modifier(Modifier::BOLD),
         )
-        .highlight_symbol(">> ");
+        .highlight_symbol("-> ");
+
+    // take the terminal size as window size
+    let rect = f.size();
 
     // We can now render the item list
     f.render_stateful_widget(items, rect, &mut app.items.state);
