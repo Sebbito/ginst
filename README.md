@@ -34,6 +34,24 @@ on the last step you can copy it to any directory that is included in PATH but i
 
 `ginst --file path/to/programs.json`
 
+Use
+```
+  k
+h   l
+  j
+```
+or 
+
+```
+  ˄
+˂   ˃
+  ˅
+```
+to move through the menue.
+The `l` or `˃` to go a level down and view the dependencies and `h` or `˂` to go one level back up.
+
+Use q to quit (goes up one level if you're in a submenu) and `i` or enter to execute the installation instructions for the program.
+
 ## Configuring
 
 Right now the only way to configure the tool is through the `programs.json` file (which has to be in the working dir). There you can specify a program with installations per distribution and dependencies.

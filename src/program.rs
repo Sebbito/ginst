@@ -13,11 +13,11 @@ pub enum Status {
 
 #[derive(Default, Debug, Clone)]
 pub struct Program {
-    status: Status,
-    name: String,
+    pub status: Status,
+    pub name: String,
     installation: instructionset::InstructionSet,
     configuration: instructionset::InstructionSet,
-    dependencies: ProgramCollection,
+    pub dependencies: ProgramCollection,
 }
 
 impl Program {
@@ -41,16 +41,25 @@ impl Program {
     }
 
     pub fn has_configuration_steps(&self) -> bool {
-        !self.configuration.is_empty()
+        !self.configuration.is_empty() && self.configuration.len() != 0
     }
 
     pub fn has_installation_steps(&self) -> bool {
-        !self.installation.is_empty()
+        !self.installation.is_empty() && self.installation.len() != 0
+    }
+
+    pub fn has_dependencies(&self) -> bool {
+        !self.dependencies.is_empty() && self.dependencies.len() != 0
     }
 
     pub fn install(&self) {
+        if self.is_installed() {
+            println!("{} is already installed", self.name);
+            return;
+        }
+
         let current_dist = get_dist();
-        if !self.is_installed() && self.has_installation_steps() {
+        if self.has_installation_steps() {
             // omg this is so nice
             let installation_steps = self.installation.for_dist(current_dist.clone());
             if let Some(steps) = installation_steps {
