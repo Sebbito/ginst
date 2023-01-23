@@ -138,7 +138,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     // create app and run it
     let tick_rate = Duration::from_millis(250);
     let app = app::App::new(programs.programs);
-    let res = app::run_app(&mut terminal, app, tick_rate);
+    let res = app::run_app(&mut terminal, app, tick_rate, false);
 
     // restore terminal
     disable_raw_mode()?;

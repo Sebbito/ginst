@@ -81,6 +81,7 @@ pub fn run_app<B: Backend>(
     terminal: &mut Terminal<B>,
     mut app: App,
     tick_rate: Duration,
+    is_submenu: bool
 ) -> io::Result<()> {
     let last_tick = Instant::now();
     loop {
@@ -93,9 +94,23 @@ pub fn run_app<B: Backend>(
             if let Event::Key(key) = event::read()? {
                 match key.code {
                     KeyCode::Char('q') => return Ok(()),
-                    KeyCode::Left => app.items.unselect(),
-                    KeyCode::Down => app.items.next(),
-                    KeyCode::Up => app.items.previous(),
+                    KeyCode::Left | KeyCode::Char('h') => {
+                        if is_submenu {
+                            return Ok(());
+                        }
+                    },
+                    KeyCode::Down | KeyCode::Char('j') => app.items.next(),
+                    KeyCode::Up | KeyCode::Char('k') => app.items.previous(),
+                    KeyCode::Right | KeyCode::Char('l') => {
+                        // render new app with the selected items' dependencies like a submenu
+                        let selected = app.items.items[app.items.state.selected().unwrap()].clone();
+                        if selected.has_dependencies() {
+                            let deps = selected.dependencies.clone();
+                            let sub_app = App::new(deps.programs);
+                            run_app(terminal, sub_app, tick_rate, true);
+                        }
+                    },
+                    KeyCode::Enter | KeyCode::Char('i') => app.items.items[app.items.state.selected().unwrap()].install(),
                     _ => {}
                 }
             }
@@ -107,25 +122,35 @@ fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) {
     // Create two chunks with equal horizontal screen space
     let rect = f.size();
 
-    // Iterate through all elements in the `items` app and append some debug text to it.
+    // Iterate through all elements in the `items` app and append some info to it.
     let items: Vec<ListItem> = app
         .items
         .items
         .iter()
         .map(|i| {
-            let substring = {
+            let mut lines = vec![Spans::from(i.name.clone())];
+            
+            // get the status text
+            let status = {
                 if i.status == Status::Missing {
                     "⮽ Missing"
                 } else {
                     "🗹 Installed"
                 }
             };
-            let mut lines = vec![Spans::from(i.name.clone())];
-            lines.push(Spans::from(Span::styled(
-                substring,
-                Style::default().add_modifier(Modifier::ITALIC),
-            )));
+            // append it to the item
+            lines.push(Spans::from(
+                Span::styled(status, Style::default().add_modifier(Modifier::ITALIC))
+            ));
+            
+            // optionally append a hint for subitems to it
+            if i.has_dependencies() {
+                lines.push(Spans::from(
+                    Span::styled(">>>", Style::default().add_modifier(Modifier::ITALIC))
+                ));
+            }
 
+            // based on status set othe colors
             match i.status {
                 Status::Missing => ListItem::new(lines).style(Style::default().fg(Color::White).bg(Color::Red)),
                 Status::Installed => ListItem::new(lines).style(Style::default().fg(Color::White).bg(Color::Green)),

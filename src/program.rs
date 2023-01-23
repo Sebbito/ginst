@@ -17,7 +17,7 @@ pub struct Program {
     pub name: String,
     installation: instructionset::InstructionSet,
     configuration: instructionset::InstructionSet,
-    dependencies: ProgramCollection,
+    pub dependencies: ProgramCollection,
 }
 
 impl Program {
@@ -46,6 +46,10 @@ impl Program {
 
     pub fn has_installation_steps(&self) -> bool {
         !self.installation.is_empty()
+    }
+
+    pub fn has_dependencies(&self) -> bool {
+        !self.dependencies.is_empty()
     }
 
     pub fn install(&self) {
