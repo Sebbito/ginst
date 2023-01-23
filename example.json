@@ -15,7 +15,7 @@
             },
             "configuration": {
                 "*": [
-                    "chsh -s /usr/bin/fish"
+                    "echo \"Use chsh -s /usr/bin/fish\" to change the shell"
                 ]
             },
             "dependencies": {
