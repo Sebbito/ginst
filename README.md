@@ -47,10 +47,15 @@ or
 ˂   ˃
   ˅
 ```
-to move through the menue.
+to move through the menu.
+
 The `l` or `˃` to go a level down and view the dependencies and `h` or `˂` to go one level back up.
 
-Use q to quit (goes up one level if you're in a submenu) and `i` or enter to execute the installation instructions for the program.
+Further keybinds are:
+
+-  `i` or `enter` to execute the installation instructions for the program
+-  `c` to execute the configuration steps
+-  `q` to quit (goes up one level if you're in a submenu)
 
 ## Configuring
 
