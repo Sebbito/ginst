@@ -53,8 +53,13 @@ impl Program {
     }
 
     pub fn install(&self) {
+        if self.is_installed() {
+            println!("{} is already installed", self.name);
+            return;
+        }
+
         let current_dist = get_dist();
-        if !self.is_installed() && self.has_installation_steps() {
+        if self.has_installation_steps() {
             // omg this is so nice
             let installation_steps = self.installation.for_dist(current_dist.clone());
             if let Some(steps) = installation_steps {
