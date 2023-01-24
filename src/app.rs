@@ -1,3 +1,7 @@
+//! # App
+//!
+//! Crate containing the apps state and code for rendering it in the terminal
+
 use crossterm::event::{self, Event, KeyCode};
 use std::{
     io,

@@ -12,6 +12,10 @@
 //!
 //! For more information see the [ginst Wiki](https://github.com/Sebbito/ginst/wiki)
 
+pub mod app;
+pub mod program;
+pub mod distro;
+
 use crossterm::{
     event::{DisableMouseCapture, EnableMouseCapture},
     execute,
@@ -23,10 +27,6 @@ use tui::{
 };
 use std::{fs, io, env, time::Duration, error::Error};
 use clap::Parser;
-
-pub mod app;
-pub mod program;
-pub mod distro;
 
 /// Args struct holding the CL args
 #[derive(Parser, Debug)]

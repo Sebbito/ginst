@@ -1,14 +1,13 @@
 //! # Program
 //!
-//! Library representing programs.
+//! Crate with structs representing programs and common operations for said programs
 
+pub mod steps;
 
 use std::process::Command;
 use crate::distro::get_dist;
 use json::JsonValue::{self, Null};
-
-pub mod instructionset;
-pub mod steps;
+use steps::InstructionSet;
 
 /// Struct indicating the programs installation status
 #[derive(Default, Debug, PartialEq, Clone, Copy)]
@@ -22,8 +21,8 @@ pub enum Status {
 pub struct Program {
     pub status: Status,
     pub name: String,
-    installation: instructionset::InstructionSet,
-    configuration: instructionset::InstructionSet,
+    installation: InstructionSet,
+    configuration: InstructionSet,
     pub dependencies: ProgramCollection,
 }
 
@@ -176,8 +175,8 @@ pub fn from_json(json_parsed: &JsonValue) -> Program {
     let mut prog: Program = Default::default();
 
     prog.name = json_parsed["name"].clone().to_string();
-    prog.installation = instructionset::from_json(json_parsed["installation"].clone());
-    prog.configuration = instructionset::from_json(json_parsed["configuration"].clone());
+    prog.installation = steps::from_json(json_parsed["installation"].clone());
+    prog.configuration = steps::from_json(json_parsed["configuration"].clone());
     prog.status = prog.check();
     prog.dependencies = collection_from_json(json_parsed["dependencies"].clone());
     

@@ -1,3 +1,7 @@
+//! # Distro
+//!
+//! Crate containing util functions
+
 use std::process::Command;
 
 /// Get's the distributions name from `/etc/os-release`
