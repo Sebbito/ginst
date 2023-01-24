@@ -7,7 +7,7 @@ use tui::{
     backend::Backend,
     style::{Color, Modifier, Style},
     text::{Span, Spans},
-    widgets::{Block, Borders, List, ListItem, ListState, BorderType},
+    widgets::{Block, Borders, List, ListItem, ListState},
     Frame, Terminal,
 };
 
