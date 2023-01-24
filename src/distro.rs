@@ -1,5 +1,6 @@
 use std::process::Command;
 
+/// Get's the distributions name from `/etc/os-release`
 pub fn get_dist() -> String {
     let output = Command::new("grep")
                     .args(["^NAME=\".*\"","/etc/os-release"])
