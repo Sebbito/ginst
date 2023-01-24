@@ -36,16 +36,16 @@ on the last step you can copy it to any directory that is included in PATH but i
 
 Use
 ```
-  k
-h   l
-  j
+   k
+h     l
+   j
 ```
 or 
 
 ```
-  ˄
-˂   ˃
-  ˅
+   ^
+<-   ->
+   v
 ```
 to move through the menu.
 
