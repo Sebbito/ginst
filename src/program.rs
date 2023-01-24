@@ -1,22 +1,28 @@
-use std::process::Command;
-use ginst::get_dist;
-use json::JsonValue::{self, Null};
+//! # Program
+//!
+//! Crate with structs representing programs and common operations for said programs
 
-pub mod instructionset;
 pub mod steps;
 
+use std::process::Command;
+use crate::distro::get_dist;
+use json::JsonValue::{self, Null};
+use steps::InstructionSet;
+
+/// Struct indicating the programs installation status
 #[derive(Default, Debug, PartialEq, Clone, Copy)]
 pub enum Status {
     Installed,
     #[default] Missing,
 }
 
+/// Struct representing a program 
 #[derive(Default, Debug, Clone)]
 pub struct Program {
     pub status: Status,
     pub name: String,
-    installation: instructionset::InstructionSet,
-    configuration: instructionset::InstructionSet,
+    installation: InstructionSet,
+    configuration: InstructionSet,
     pub dependencies: ProgramCollection,
 }
 
@@ -25,6 +31,7 @@ impl Program {
         self.status == Status::Installed && self.dependencies.are_installed()
     }
 
+    /// Checks if a program is installed using the `command -v` command.
     fn check(&self) -> Status {
         /* Performs a check if the program is installed */
         let status = Command::new("command")
@@ -52,6 +59,7 @@ impl Program {
         !self.dependencies.is_empty() && self.dependencies.len() != 0
     }
 
+    /// Executes installation instructions for the current distro (uses get_dist())
     pub fn install(&self) {
         if self.is_installed() {
             println!("{} is already installed", self.name);
@@ -72,6 +80,7 @@ impl Program {
         }
     }
 
+    /// Executes configuration instructions for the current distro (uses get_dist())
     pub fn configure(&self) {
         let current_dist = get_dist();
         if self.has_configuration_steps() {
@@ -101,7 +110,7 @@ impl Program {
     }
 }
 
-
+/// A collection of programs with some utilie
 #[derive(Default, Debug, Clone)]
 pub struct ProgramCollection {
     pub programs: Vec<Program>
@@ -114,7 +123,7 @@ impl ProgramCollection {
     }
 
     pub fn is_empty(&self) -> bool {
-        self.programs.is_empty()
+        self.programs.is_empty() && self.programs.len() == 0
     }
 
     pub fn are_installed(&self) -> bool {
@@ -160,18 +169,21 @@ impl ProgramCollection {
 
 }
 
+/// Reads parsed json to generate a single program and performs check() to see of the program if
+/// installed
 pub fn from_json(json_parsed: &JsonValue) -> Program {
     let mut prog: Program = Default::default();
 
     prog.name = json_parsed["name"].clone().to_string();
-    prog.installation = instructionset::from_json(json_parsed["installation"].clone());
-    prog.configuration = instructionset::from_json(json_parsed["configuration"].clone());
+    prog.installation = steps::from_json(json_parsed["installation"].clone());
+    prog.configuration = steps::from_json(json_parsed["configuration"].clone());
     prog.status = prog.check();
     prog.dependencies = collection_from_json(json_parsed["dependencies"].clone());
     
     prog
 }
 
+/// Generates a program collection from parsed json
 pub fn collection_from_json(json_parsed: JsonValue) -> ProgramCollection{
     let mut programs: ProgramCollection = Default::default();
 

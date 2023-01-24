@@ -1,3 +1,7 @@
+//! # App
+//!
+//! Crate containing the apps state and code for rendering it in the terminal
+
 use crossterm::event::{self, Event, KeyCode};
 use std::{
     io,
@@ -7,7 +11,7 @@ use tui::{
     backend::Backend,
     style::{Color, Modifier, Style},
     text::{Span, Spans},
-    widgets::{Block, Borders, List, ListItem, ListState, BorderType},
+    widgets::{Block, Borders, List, ListItem, ListState},
     Frame, Terminal,
 };
 
