@@ -1,0 +1,23 @@
+programs:
+- name: fish
+  installation:
+  - distro:
+    - Fedora Linux
+    - Nobara
+    steps:
+    - sudo dnf install -y fish
+  - distro:
+    - Ubuntu
+    - Debian GNU/Linux
+    steps:
+    - sudo apt-get install -y software-properties-common apt-utils
+    - sudo apt-add-repository ppa:fish-shell/release-3
+    - sudo apt update
+    - sudo apt-get install -y fish
+  configuration:
+  - distro:
+    - '*'
+    steps:
+    - echo "Use chsh -s /usr/bin/fish" to change the shell
+  dependencies:
+    programs: []
