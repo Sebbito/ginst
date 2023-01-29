@@ -15,7 +15,7 @@ use tui::{
     Frame, Terminal,
 };
 
-use crate::program::{Program, Status};
+use crate::program::Program;
 
 struct StatefulList<T> {
     state: ListState,
@@ -58,9 +58,9 @@ impl<T> StatefulList<T> {
         self.state.select(Some(i));
     }
 
-    fn unselect(&mut self) {
-        self.state.select(None);
-    }
+    // fn unselect(&mut self) {
+    //     self.state.select(None);
+    // }
 }
 
 /// This struct holds the current state of the app. In particular, it has the `items` field which is a wrapper
@@ -118,8 +118,10 @@ pub fn run_app<B: Backend>(
                         // render new app with the selected items' dependencies like a submenu
                         if selected.is_some() {
                             let deps = selected.unwrap().dependencies.clone();
-                            let sub_app = App::new(deps.programs);
-                            run_app(terminal, sub_app, tick_rate, true);
+                            if deps.len() != 0 {
+                                let sub_app = App::new(deps.programs);
+                                run_app(terminal, sub_app, tick_rate, true)?;
+                            }
                         }
                     },
                     KeyCode::Enter | KeyCode::Char('i') => {
@@ -150,10 +152,10 @@ fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) {
             
             // get the status text
             let status = {
-                if i.status == Status::Missing {
-                    "⮽ Missing"
-                } else {
+                if i.is_installed() {
                     "🗹 Installed"
+                } else {
+                    "⮽ Missing"
                 }
             };
             // append it to the item
@@ -169,9 +171,9 @@ fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) {
             }
 
             // based on status set othe colors
-            match i.status {
-                Status::Missing => ListItem::new(lines).style(Style::default().fg(Color::White).bg(Color::Red)),
-                Status::Installed => ListItem::new(lines).style(Style::default().fg(Color::White).bg(Color::Green)),
+            match i.is_installed() {
+                true => ListItem::new(lines).style(Style::default().fg(Color::White).bg(Color::Green)),
+                false => ListItem::new(lines).style(Style::default().fg(Color::White).bg(Color::Red)),
             }
             
         })

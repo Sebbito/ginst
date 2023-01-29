@@ -16,16 +16,19 @@ pub mod app;
 pub mod program;
 pub mod distro;
 
+use program::ProgramCollection;
+
 use crossterm::{
     event::{DisableMouseCapture, EnableMouseCapture},
     execute,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
+
 use tui::{
     backend::CrosstermBackend,
     Terminal,
 };
-use std::{fs, io, env, time::Duration, error::Error};
+use std::{io, env, time::Duration, error::Error};
 use clap::Parser;
 
 /// Args struct holding the CL args
@@ -37,28 +40,13 @@ struct Args {
    file: String,
 }
 
-/// Utility function for extracting file contents
-fn get_file_contents(path: String) -> String {
-    let file_contents = if !path.is_empty() {
-        fs::read_to_string(path)
-                            .expect("Could not find json file. Make sure you are in a directory where theres also the json file.")
-    } else {
-        panic!("File argument '{}' invalid", path);
-    };
-
-    file_contents
-}
-
 fn main() -> Result<(), Box<dyn Error>> {
     if cfg!(debug_assertions) {
         env::set_var("RUST_BACKTRACE", "1");
     }
 
     let args = Args::parse();
-    let json_parsed = json::parse(&get_file_contents(args.file.clone()))
-                        .expect("Could not parse json file. Maybe you forgot a comma somewhere?");
-    let programs = program::collection_from_json(json_parsed);
-
+    let programs: ProgramCollection = program::from_file(args.file).unwrap();
 
     // setup terminal
     enable_raw_mode()?;
