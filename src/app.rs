@@ -58,9 +58,9 @@ impl<T> StatefulList<T> {
         self.state.select(Some(i));
     }
 
-    fn unselect(&mut self) {
-        self.state.select(None);
-    }
+    // fn unselect(&mut self) {
+    //     self.state.select(None);
+    // }
 }
 
 /// This struct holds the current state of the app. In particular, it has the `items` field which is a wrapper
@@ -120,7 +120,7 @@ pub fn run_app<B: Backend>(
                             let deps = selected.unwrap().dependencies.clone();
                             if deps.len() != 0 {
                                 let sub_app = App::new(deps.programs);
-                                run_app(terminal, sub_app, tick_rate, true);
+                                run_app(terminal, sub_app, tick_rate, true)?;
                             }
                         }
                     },

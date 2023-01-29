@@ -17,7 +17,6 @@ pub mod program;
 pub mod distro;
 
 use program::ProgramCollection;
-use serde_json;
 
 use crossterm::{
     event::{DisableMouseCapture, EnableMouseCapture},
@@ -28,7 +27,7 @@ use tui::{
     backend::CrosstermBackend,
     Terminal,
 };
-use std::{fs, io, env, time::Duration, error::Error};
+use std::{io, env, time::Duration, error::Error};
 use clap::Parser;
 
 /// Args struct holding the CL args
@@ -38,18 +37,6 @@ struct Args {
    /// Path to the json file holding program information
    #[arg(short, long)]
    file: String,
-}
-
-/// Utility function for extracting file contents
-fn get_file_contents(path: String) -> String {
-    let file_contents = if !path.is_empty() {
-        fs::read_to_string(path)
-                            .expect("Could not find json file. Make sure you are in a directory where theres also the json file.")
-    } else {
-        panic!("File argument '{}' invalid", path);
-    };
-
-    file_contents
 }
 
 fn main() -> Result<(), Box<dyn Error>> {

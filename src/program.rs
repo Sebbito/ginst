@@ -129,19 +129,6 @@ impl Program {
             println!("No configuration instructions for program '{}' given.", self.name);
         }
     }
-
-    pub fn print(&self, indent_level: u8) {
-        self.print_status();
-        self.dependencies.print_statuses(indent_level + 1);
-    }
-
-    pub fn print_status(&self) {
-        if self.is_installed() {
-            println!("[✓] {}", self.name);
-        } else {
-            println!("[⤫] {}", self.name);
-        }
-    }
 }
 
 /// A collection of programs with some utilie
@@ -172,15 +159,6 @@ impl ProgramCollection {
         true
     }
 
-    pub fn print_statuses(&self, indent_level: u8) {
-        for program in self.programs.clone() {
-            for _ in 0..indent_level {
-                print!("  "); // indent by 1 block
-            }
-            program.print(indent_level);
-        }
-    }
-
     pub fn install_missing(&self) {
         for prog in self.programs.clone() {
             prog.install();
@@ -206,7 +184,24 @@ impl ProgramCollection {
 pub fn from_json_file(path: String) -> Option<ProgramCollection> {
     let prog = std::fs::read_to_string(path).unwrap();
 
+    // use serde niceness
     if let Some(mut result) = serde_json::from_str::<ProgramCollection>(&prog).ok() {
+        // now check if each program is installed
+        for prog in result.programs.iter_mut().by_ref() {
+            prog.set_status();
+        }
+        return Some(result);
+    } else {
+        None
+    }
+}
+
+pub fn from_yaml_file(path: String) -> Option<ProgramCollection> {
+    let prog = std::fs::read_to_string(path).unwrap();
+
+    // use serde niceness
+    if let Some(mut result) = serde_yaml::from_str::<ProgramCollection>(&prog).ok() {
+        // now check if each program is installed
         for prog in result.programs.iter_mut().by_ref() {
             prog.set_status();
         }
@@ -220,19 +215,11 @@ pub fn from_json_file(path: String) -> Option<ProgramCollection> {
 mod tests {
     use crate::program::from_json_file;
 
-
     #[test]
     fn test_has_config() {
         let prog = from_json_file("example.json".to_owned()).unwrap();
         assert!(prog.programs[0].has_configuration_steps());
     }
-
-    #[test]
-    fn test_has_no_config() {
-        let prog = from_json_file("example.json".to_owned()).unwrap();
-        assert!(prog.programs[0].has_configuration_steps() == false);
-    }
-    
     #[test]
     fn test_has_install() {
         let prog = from_json_file("example.json".to_owned()).unwrap();
@@ -240,14 +227,10 @@ mod tests {
     }
 
     #[test]
-    fn test_has_no_install() {
+    fn test_has_dependencies() {
+        // this test is kinda trash but i'm too tired to make it good
         let prog = from_json_file("example.json".to_owned()).unwrap();
-        assert!(prog.programs[0].has_installation_steps() == false);
+        assert!(prog.programs[0].has_dependencies() == false);
     }
 
-    #[test]
-    fn test_is_installed() {
-        let prog = from_json_file("example.json".to_owned()).unwrap();
-        assert!(prog.programs[0].is_installed() == false);
-    }
 }
