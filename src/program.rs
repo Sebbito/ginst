@@ -211,6 +211,18 @@ pub fn from_yaml_file(path: String) -> Option<ProgramCollection> {
     }
 }
 
+pub fn from_file(path: String) -> Option<ProgramCollection> {
+    let extension = std::path::Path::new(&path).extension().unwrap();
+
+    if extension == "json" {
+        from_json_file(path)
+    } else if extension == "yaml" {
+        from_yaml_file(path)
+    } else {
+        panic!("Invalid file format")
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::program::from_json_file;

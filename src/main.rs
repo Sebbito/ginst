@@ -23,6 +23,7 @@ use crossterm::{
     execute,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
+
 use tui::{
     backend::CrosstermBackend,
     Terminal,
@@ -45,8 +46,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
 
     let args = Args::parse();
-    let programs: ProgramCollection = program::from_json_file(args.file).unwrap();
-    // println!("{programs:?}");
+    let programs: ProgramCollection = program::from_file(args.file).unwrap();
 
     // setup terminal
     enable_raw_mode()?;
