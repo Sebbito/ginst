@@ -16,6 +16,9 @@ pub mod app;
 pub mod program;
 pub mod distro;
 
+use program::ProgramCollection;
+use serde_json;
+
 use crossterm::{
     event::{DisableMouseCapture, EnableMouseCapture},
     execute,
@@ -55,10 +58,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
 
     let args = Args::parse();
-    let json_parsed = json::parse(&get_file_contents(args.file.clone()))
-                        .expect("Could not parse json file. Maybe you forgot a comma somewhere?");
-    let programs = program::collection_from_json(json_parsed);
-
+    let programs: ProgramCollection = program::from_json_file(args.file).unwrap();
+    // println!("{programs:?}");
 
     // setup terminal
     enable_raw_mode()?;

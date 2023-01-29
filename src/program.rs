@@ -6,33 +6,36 @@ pub mod steps;
 
 use std::process::Command;
 use crate::distro::get_dist;
-use json::JsonValue::{self, Null};
-use steps::InstructionSet;
+use serde::{Deserialize, Serialize};
+
+use self::steps::Steps;
 
 /// Struct indicating the programs installation status
-#[derive(Default, Debug, PartialEq, Clone, Copy)]
+#[derive(Default, Debug, PartialEq, Clone, Copy, Serialize, Deserialize)]
 pub enum Status {
     Installed,
     #[default] Missing,
 }
 
 /// Struct representing a program 
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub struct Program {
-    pub status: Status,
     pub name: String,
-    installation: InstructionSet,
-    configuration: InstructionSet,
+    pub installation: Vec<Steps>,
+    pub configuration: Vec<Steps>,
     pub dependencies: ProgramCollection,
+
+    #[serde(skip)]
+    status: Status
 }
 
 impl Program {
-    fn is_installed(&self) -> bool {
+    pub fn is_installed(&self) -> bool {
         self.status == Status::Installed && self.dependencies.are_installed()
     }
 
     /// Checks if a program is installed using the `command -v` command.
-    fn check(&self) -> Status {
+    pub fn check(&self) -> Status {
         /* Performs a check if the program is installed */
         let status = Command::new("command")
                         .arg("-v")
@@ -44,6 +47,13 @@ impl Program {
             Status::Installed
         } else {
             Status::Missing
+        }
+    }
+
+    pub fn set_status(&mut self) {
+        self.status = self.check();
+        for dep in self.dependencies.programs.iter_mut().by_ref() {
+            dep.set_status();
         }
     }
 
@@ -59,6 +69,30 @@ impl Program {
         !self.dependencies.is_empty() && self.dependencies.len() != 0
     }
 
+    /// Utilitiy function returning a Steps struct for the users distribution
+    pub fn config_steps_for_dist(&self, dist_name: String) -> Option<Steps> {
+        for steps in self.configuration.clone() {
+            for dist in steps.distro.clone() {
+                if dist == dist_name || dist == "*"{
+                    return Some(steps)
+                }
+            }
+        }
+        None
+    }
+
+    /// Utilitiy function returning a Steps struct for the users distribution
+    pub fn install_steps_for_dist(&self, dist_name: String) -> Option<Steps> {
+        for steps in self.installation.clone() {
+            for dist in steps.distro.clone() {
+                if dist == dist_name || dist == "*"{
+                    return Some(steps)
+                }
+            }
+        }
+        None
+    }
+
     /// Executes installation instructions for the current distro (uses get_dist())
     pub fn install(&self) {
         if self.is_installed() {
@@ -69,7 +103,7 @@ impl Program {
         let current_dist = get_dist();
         if self.has_installation_steps() {
             // omg this is so nice
-            let installation_steps = self.installation.for_dist(current_dist.clone());
+            let installation_steps = self.install_steps_for_dist(current_dist.clone());
             if let Some(steps) = installation_steps {
                 steps.execute();
             } else {
@@ -85,7 +119,7 @@ impl Program {
         let current_dist = get_dist();
         if self.has_configuration_steps() {
             // omg this is so nice
-            let configuration_steps = self.configuration.for_dist(current_dist.clone());
+            let configuration_steps = self.config_steps_for_dist(current_dist.clone());
             if let Some(steps) = configuration_steps {
                 steps.execute();
             } else {
@@ -111,7 +145,7 @@ impl Program {
 }
 
 /// A collection of programs with some utilie
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub struct ProgramCollection {
     pub programs: Vec<Program>
 }
@@ -169,141 +203,51 @@ impl ProgramCollection {
 
 }
 
-/// Reads parsed json to generate a single program and performs check() to see of the program if
-/// installed
-pub fn from_json(json_parsed: &JsonValue) -> Program {
-    let mut prog: Program = Default::default();
+pub fn from_json_file(path: String) -> Option<ProgramCollection> {
+    let prog = std::fs::read_to_string(path).unwrap();
 
-    prog.name = json_parsed["name"].clone().to_string();
-    prog.installation = steps::from_json(json_parsed["installation"].clone());
-    prog.configuration = steps::from_json(json_parsed["configuration"].clone());
-    prog.status = prog.check();
-    prog.dependencies = collection_from_json(json_parsed["dependencies"].clone());
-    
-    prog
-}
-
-/// Generates a program collection from parsed json
-pub fn collection_from_json(json_parsed: JsonValue) -> ProgramCollection{
-    let mut programs: ProgramCollection = Default::default();
-
-    if json_parsed != Null {
-        for program in json_parsed["programs"].members() {
-            programs.push(from_json(program));
+    if let Some(mut result) = serde_json::from_str::<ProgramCollection>(&prog).ok() {
+        for prog in result.programs.iter_mut().by_ref() {
+            prog.set_status();
         }
+        return Some(result);
+    } else {
+        None
     }
-    
-    programs
 }
 
 #[cfg(test)]
 mod tests {
-    use json;
-    use super::from_json;
-
-    #[test]
-    fn test_from_json() {
-        let prog = "{
-            \"name\": \"topkek\",
-            \"installation\": {
-                \"*\": [
-                    \"echo '#!/bin/bash' >> ~/.local/bin/topkek\",
-                    \"echo 'echo hello :D' >> ~/.local/bin/topkek\",
-                    \"chmod +x ~/.local/bin/topkek\"
-                ]
-            },
-            \"configuration\": {
-                \"*\": [
-                    \"~/.local/bin/topkek\"
-                ]
-            }
-        }";
-        
-        from_json(&json::parse(prog).unwrap());
-    }
-
-    #[test]
-    #[should_panic]
-    fn test_from_json_invalid() {
-        // the missing ',' after name
-        let prog = "{
-            \"name\": \"topkek\"
-            \"installation\": {
-                \"*\": [
-                ]
-            }
-        }";
-        
-        from_json(&json::parse(prog).unwrap());
-    }
+    use crate::program::from_json_file;
 
 
     #[test]
     fn test_has_config() {
-        let prog = "{
-            \"name\": \"topkek\",
-            \"configuration\": {
-                \"*\": [
-                    \"~/.local/bin/topkek\"
-                ]
-            }
-        }";
-        
-        let prog = from_json(&json::parse(prog).unwrap());
-        assert!(prog.has_configuration_steps());
+        let prog = from_json_file("example.json".to_owned()).unwrap();
+        assert!(prog.programs[0].has_configuration_steps());
     }
 
     #[test]
     fn test_has_no_config() {
-        let prog = "{
-            \"name\": \"topkek\",
-            \"installation\": {
-                \"*\": [
-                    \"echo '#!/bin/bash' >> ~/.local/bin/topkek\",
-                    \"echo 'echo hello :D' >> ~/.local/bin/topkek\",
-                    \"chmod +x ~/.local/bin/topkek\"
-                ]
-            }
-        }";
-        
-        let prog = from_json(&json::parse(prog).unwrap());
-        assert!(prog.has_configuration_steps() == false);
+        let prog = from_json_file("example.json".to_owned()).unwrap();
+        assert!(prog.programs[0].has_configuration_steps() == false);
     }
     
     #[test]
     fn test_has_install() {
-        let prog = "{
-            \"name\": \"topkek\",
-            \"installation\": {
-                \"*\": [
-                    \"echo '#!/bin/bash' >> ~/.local/bin/topkek\",
-                    \"echo 'echo hello :D' >> ~/.local/bin/topkek\",
-                    \"chmod +x ~/.local/bin/topkek\"
-                ]
-            }
-        }";
-        
-        let prog = from_json(&json::parse(prog).unwrap());
-        assert!(prog.has_installation_steps());
+        let prog = from_json_file("example.json".to_owned()).unwrap();
+        assert!(prog.programs[0].has_installation_steps());
     }
 
     #[test]
     fn test_has_no_install() {
-        let prog = "{
-            \"name\": \"topkek\"
-        }";
-        
-        let prog = from_json(&json::parse(prog).unwrap());
-        assert!(prog.has_installation_steps() == false);
+        let prog = from_json_file("example.json".to_owned()).unwrap();
+        assert!(prog.programs[0].has_installation_steps() == false);
     }
 
     #[test]
     fn test_is_installed() {
-        let prog = "{
-            \"name\": \"topkek\"
-        }";
-        
-        let prog = from_json(&json::parse(prog).unwrap());
-        assert!(prog.is_installed() == false);
+        let prog = from_json_file("example.json".to_owned()).unwrap();
+        assert!(prog.programs[0].is_installed() == false);
     }
 }
