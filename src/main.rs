@@ -35,9 +35,10 @@ use clap::Parser;
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Args {
-   /// Path to the json file holding program information
-   #[arg(short, long)]
-   file: String,
+    /// Path to the file holding program information
+    file: String,
+    // #[arg(short, long)]
+
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
