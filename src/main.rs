@@ -37,7 +37,16 @@ use clap::Parser;
 struct Args {
     /// Path to the file holding program information
     file: String,
-    // #[arg(short, long)]
+    #[arg(long)]
+    count: bool,
+    #[arg(long)]
+    install: bool,
+    #[arg(long)]
+    configure: bool,
+    #[arg(long)]
+    list: bool,
+    #[arg(long)]
+    check: bool,
 
 }
 
