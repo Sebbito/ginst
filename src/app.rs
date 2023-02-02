@@ -206,8 +206,8 @@ fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) {
     // create two chunks one for the key overview and one for the list
     let chunks = Layout::default()
         .direction(Direction::Vertical)
-        .margin(4)
-        .constraints([Constraint::Percentage(90), Constraint::Percentage(90)].as_ref())
+        .margin(5)
+        .constraints([Constraint::Percentage(90), Constraint::Percentage(10)].as_ref())
         .split(f.size());
 
     // We can now render the item list
