@@ -117,9 +117,9 @@ pub fn run_app<B: Backend>(
                     KeyCode::Right | KeyCode::Char('l') => {
                         // render new app with the selected items' dependencies like a submenu
                         if selected.is_some() {
-                            let deps = selected.unwrap().dependencies.clone();
-                            if deps.len() != 0 {
-                                let sub_app = App::new(deps.programs);
+                            let dependencies = selected.unwrap().get_dependencies();
+                            if dependencies.len() != 0 {
+                                let sub_app = App::new(dependencies);
                                 run_app(terminal, sub_app, tick_rate, true)?;
                             }
                         }
@@ -148,7 +148,7 @@ fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) {
         .items
         .iter()
         .map(|i| {
-            let mut lines = vec![Spans::from(i.name.clone())];
+            let mut lines = vec![Spans::from(i.get_name())];
             
             // get the status text
             let status = {

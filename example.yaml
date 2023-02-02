@@ -1,4 +1,3 @@
-programs:
 - name: fish
   installation:
   - distro:
@@ -20,4 +19,7 @@ programs:
     steps:
     - echo "Use chsh -s /usr/bin/fish" to change the shell
   dependencies:
-    programs: []
+    - name: test
+      installation:
+      configuration:
+      dependencies:

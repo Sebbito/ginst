@@ -15,8 +15,7 @@
 pub mod app;
 pub mod program;
 pub mod distro;
-
-use program::ProgramCollection;
+pub mod parser;
 
 use crossterm::{
     event::{DisableMouseCapture, EnableMouseCapture},
@@ -37,14 +36,19 @@ use clap::Parser;
 struct Args {
     /// Path to the file holding program information
     file: String,
+    /// count all programs (including dependencies)
     #[arg(long)]
     count: bool,
+    /// execute installation for all programs and exit
     #[arg(long)]
     install: bool,
+    /// execute configuration for all programs and exit
     #[arg(long)]
     configure: bool,
+    /// List all programs contained in file
     #[arg(long)]
     list: bool,
+    /// perform checks on all programs and dependencies
     #[arg(long)]
     check: bool,
 
@@ -56,7 +60,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
 
     let args = Args::parse();
-    let programs: ProgramCollection = program::from_file(args.file).unwrap();
+    let programs: Vec<program::Program>= parser::get_programs_from_file(args.file);
 
     // setup terminal
     enable_raw_mode()?;
@@ -67,7 +71,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     // create app and run it
     let tick_rate = Duration::from_millis(250);
-    let app = app::App::new(programs.programs);
+    let app = app::App::new(programs);
     let res = app::run_app(&mut terminal, app, tick_rate, false);
 
     // restore terminal

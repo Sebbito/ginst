@@ -5,9 +5,8 @@
 pub mod steps;
 
 use std::process::Command;
-use crate::distro::get_dist;
 use serde::{Deserialize, Serialize};
-
+use crate::distro::get_dist;
 use self::steps::Steps;
 
 /// Struct indicating the programs installation status
@@ -20,18 +19,27 @@ pub enum Status {
 /// Struct representing a program 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub struct Program {
-    pub name: String,
-    pub installation: Vec<Steps>,
-    pub configuration: Vec<Steps>,
-    pub dependencies: ProgramCollection,
+    name: String,
+    installation: Vec<Steps>,
+    configuration: Vec<Steps>,
+    dependencies: Vec<Program>,
 
+    /// status will be determined at runtime
     #[serde(skip)]
     status: Status
 }
 
 impl Program {
+    pub fn get_name(&self) -> String {
+        self.name.clone()
+    }
+
+    pub fn get_dependencies(&self) -> Vec<Program>{
+        self.dependencies.clone()
+    }
+
     pub fn is_installed(&self) -> bool {
-        self.status == Status::Installed && self.dependencies.are_installed()
+        self.status == Status::Installed && are_installed(&self.dependencies)
     }
 
     /// Checks if a program is installed using the `command -v` command.
@@ -50,9 +58,10 @@ impl Program {
         }
     }
 
+    /// sets the status for itself **and all dependencies**
     pub fn set_status(&mut self) {
         self.status = self.check();
-        for dep in self.dependencies.programs.iter_mut().by_ref() {
+        for dep in self.dependencies.iter_mut().by_ref() {
             dep.set_status();
         }
     }
@@ -93,7 +102,8 @@ impl Program {
         None
     }
 
-    /// Executes installation instructions for the current distro (uses get_dist())
+    /// Executes installation instructions for the current distro (uses get_dist()) unless it is
+    /// already installed
     pub fn install(&self) {
         if self.is_installed() {
             println!("{} is already installed", self.name);
@@ -131,118 +141,54 @@ impl Program {
     }
 }
 
-/// A collection of programs with some utilie
-#[derive(Default, Debug, Clone, Serialize, Deserialize)]
-pub struct ProgramCollection {
-    pub programs: Vec<Program>
-}
-
-impl ProgramCollection {
-
-    pub fn len(&self) -> usize {
-        self.programs.len()
-    }
-
-    pub fn is_empty(&self) -> bool {
-        self.programs.is_empty() && self.programs.len() == 0
-    }
-
-    pub fn are_installed(&self) -> bool {
-        if !self.is_empty() {
-            for val in self.programs.clone().iter_mut().map(|d| d.is_installed()) {
-                if !val {
-                    return false;
-                }
+pub fn are_installed(programs: &Vec<Program>) -> bool {
+    if !programs.is_empty() {
+        for val in programs.clone().iter_mut().map(|d| d.is_installed()) {
+            if !val {
+                return false;
             }
         }
-
-        true
     }
 
-    pub fn install_missing(&self) {
-        for prog in self.programs.clone() {
-            prog.install();
-        }
-    }
-
-    pub fn count_missing(&self) -> u8 {
-        let mut counter = 0;
-        for p in self.programs.clone() {
-            if !p.is_installed() {
-                counter += 1;
-            }
-        }
-        counter
-    }
-
-    pub fn push(&mut self, program: Program) {
-        self.programs.push(program);
-    }
-
+    true
 }
 
-pub fn from_json_file(path: String) -> Option<ProgramCollection> {
-    let prog = std::fs::read_to_string(path).unwrap();
-
-    // use serde niceness
-    if let Some(mut result) = serde_json::from_str::<ProgramCollection>(&prog).ok() {
-        // now check if each program is installed
-        for prog in result.programs.iter_mut().by_ref() {
-            prog.set_status();
-        }
-        return Some(result);
-    } else {
-        None
+pub fn install_missing(programs: &Vec<Program>) {
+    for prog in programs.clone() {
+        prog.install();
     }
 }
 
-pub fn from_yaml_file(path: String) -> Option<ProgramCollection> {
-    let prog = std::fs::read_to_string(path).unwrap();
-
-    // use serde niceness
-    if let Some(mut result) = serde_yaml::from_str::<ProgramCollection>(&prog).ok() {
-        // now check if each program is installed
-        for prog in result.programs.iter_mut().by_ref() {
-            prog.set_status();
+pub fn count_missing(programs: &Vec<Program>) -> u8 {
+    let mut counter = 0;
+    for p in programs {
+        if !p.is_installed() {
+            counter += 1;
         }
-        return Some(result);
-    } else {
-        None
     }
-}
-
-pub fn from_file(path: String) -> Option<ProgramCollection> {
-    let extension = std::path::Path::new(&path).extension().unwrap();
-
-    if extension == "json" {
-        from_json_file(path)
-    } else if extension == "yaml" {
-        from_yaml_file(path)
-    } else {
-        panic!("Invalid file format")
-    }
+    counter
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::program::from_json_file;
+    use crate::parser::get_programs_from_file;
 
     #[test]
     fn test_has_config() {
-        let prog = from_json_file("example.json".to_owned()).unwrap();
-        assert!(prog.programs[0].has_configuration_steps());
+        let programs = get_programs_from_file("example.json".to_owned());
+        assert!(programs[0].has_configuration_steps());
     }
     #[test]
     fn test_has_install() {
-        let prog = from_json_file("example.json".to_owned()).unwrap();
-        assert!(prog.programs[0].has_installation_steps());
+        let programs = get_programs_from_file("example.json".to_owned());
+        assert!(programs[0].has_installation_steps());
     }
 
     #[test]
     fn test_has_dependencies() {
         // this test is kinda trash but i'm too tired to make it good
-        let prog = from_json_file("example.json".to_owned()).unwrap();
-        assert!(prog.programs[0].has_dependencies() == false);
+        let programs = get_programs_from_file("example.json".to_owned());
+        assert!(programs[0].has_dependencies() == false);
     }
 
 }
