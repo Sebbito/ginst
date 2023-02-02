@@ -5,14 +5,13 @@
 use crossterm::event::{self, Event, KeyCode};
 use std::{
     io,
-    time::{Duration, Instant},
-};
+    time::{Duration, Instant}};
 use tui::{
     backend::Backend,
     style::{Color, Modifier, Style},
     text::{Span, Spans},
     widgets::{Block, Borders, List, ListItem, ListState},
-    Frame, Terminal,
+    Frame, Terminal, layout::{Direction, Constraint, Layout},
 };
 
 use crate::program::Program;
@@ -141,6 +140,18 @@ pub fn run_app<B: Backend>(
     }
 }
 
+fn generate_key_overview_box() -> Block<'static> {
+    Block::default()
+        .title(Span::styled(
+            "q = quit, i/<Enter> = install, c = configure, arrow keys/h,j,k,l = move",
+            Style::default()
+                .fg(Color::White)
+                .bg(Color::Red)
+                .add_modifier(Modifier::BOLD),
+        ))
+        .title_alignment(tui::layout::Alignment::Center)
+}
+
 fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) {
     // Iterate through all elements in the `items` app and append some info to it.
     let items: Vec<ListItem> = app
@@ -190,8 +201,16 @@ fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) {
         .highlight_symbol("-> ");
 
     // take the terminal size as window size
-    let rect = f.size();
+    // let rect = f.size();
+
+    // create two chunks one for the key overview and one for the list
+    let chunks = Layout::default()
+        .direction(Direction::Vertical)
+        .margin(4)
+        .constraints([Constraint::Percentage(90), Constraint::Percentage(90)].as_ref())
+        .split(f.size());
 
     // We can now render the item list
-    f.render_stateful_widget(items, rect, &mut app.items.state);
+    f.render_stateful_widget(items, chunks[0], &mut app.items.state);
+    f.render_widget(generate_key_overview_box(), chunks[1]);
 }
