@@ -6,7 +6,7 @@ fn from_json_file(file_contents: &String) -> Vec<Program> {
     let result = serde_json::from_str::<Vec<Program>>(file_contents);
     match result {
         Ok(programs) => programs,
-        Err(error) => panic!("{}", error)
+        Err(error) => panic!("{:?}", error)
     }
 }
 
