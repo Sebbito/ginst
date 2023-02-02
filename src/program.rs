@@ -75,7 +75,7 @@ impl Program {
     }
 
     pub fn has_dependencies(&self) -> bool {
-        !self.dependencies.is_empty() && self.dependencies.len() != 0
+        !self.dependencies.is_empty()
     }
 
     /// Utilitiy function returning a Steps struct for the users distribution
@@ -175,20 +175,20 @@ mod tests {
 
     #[test]
     fn test_has_config() {
-        let programs = get_programs_from_file("example.json".to_owned());
+        let programs = get_programs_from_file("example.yaml".to_owned());
         assert!(programs[0].has_configuration_steps());
     }
     #[test]
     fn test_has_install() {
-        let programs = get_programs_from_file("example.json".to_owned());
+        let programs = get_programs_from_file("example.yaml".to_owned());
         assert!(programs[0].has_installation_steps());
     }
 
     #[test]
     fn test_has_dependencies() {
         // this test is kinda trash but i'm too tired to make it good
-        let programs = get_programs_from_file("example.json".to_owned());
-        assert!(programs[0].has_dependencies() == false);
+        let programs = get_programs_from_file("example.yaml".to_owned());
+        assert!(programs[0].has_dependencies());
     }
 
 }
