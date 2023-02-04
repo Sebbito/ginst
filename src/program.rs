@@ -4,7 +4,7 @@
 
 pub mod steps;
 
-use std::process::Command;
+use std::process::{Command, Stdio};
 use serde::{Deserialize, Serialize};
 use crate::distro::get_dist;
 use self::steps::Steps;
@@ -48,6 +48,7 @@ impl Program {
         let status = Command::new("command")
                         .arg("-v")
                         .arg(&self.name)
+                        .stdout(Stdio::null())
                         .status()
                         .expect("Failed to execute.");
 
@@ -159,14 +160,48 @@ pub fn install_missing(programs: &Vec<Program>) {
     }
 }
 
+pub fn configure_all(programs: &Vec<Program>) {
+    for prog in programs.clone() {
+        prog.configure();
+        if prog.has_dependencies() {
+            configure_all(&prog.get_dependencies());
+        }
+    }
+}
+
+
 pub fn count_missing(programs: &Vec<Program>) -> u8 {
     let mut counter = 0;
-    for p in programs {
-        if !p.is_installed() {
+    for program in programs {
+        if !program.is_installed() {
             counter += 1;
+        }
+        if program.has_dependencies() {
+            counter += count_missing(&program.get_dependencies());
         }
     }
     counter
+}
+
+pub fn count(programs: &Vec<Program>) -> u8 {
+    let mut counter = 0;
+    for program in programs {
+        counter += 1;
+        if program.has_dependencies() {
+            counter += count(&program.get_dependencies());
+        }
+    }
+    counter
+}
+
+/// Prints name of all programs and their dependencies name
+pub fn print_name(programs: &Vec<Program>) {
+    for program in programs {
+        println!("{}", program.get_name());
+        if program.has_dependencies() {
+            print_name(&program.get_dependencies());
+        }
+    }
 }
 
 #[cfg(test)]

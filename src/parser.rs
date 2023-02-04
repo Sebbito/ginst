@@ -18,7 +18,7 @@ fn from_yaml_file(file_contents: &String) -> Vec<Program> {
     }
 }
 
-pub fn get_programs_from_file(path: String) -> Vec<Program> {
+pub fn get_programs_from_file(path: &String) -> Vec<Program> {
     let extension = std::path::Path::new(&path).extension().unwrap();
     let file_contents = std::fs::read_to_string(&path).unwrap();
 
