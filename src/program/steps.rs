@@ -42,6 +42,17 @@ impl Steps {
     }
 }
 
+/// utility function to get instructions for currect dist
+pub fn steps_for_dist<'a>(list: &'a Vec<Steps>, distro: &String) -> Option<&'a Steps> {
+    for steps in list {
+        for dist in steps.distro.clone() {
+            if dist.eq(distro) || dist == "*"{
+                return Some(steps)
+            }
+        }
+    }
+    None
+}
 
 /// Struct representing a collection of steps
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
