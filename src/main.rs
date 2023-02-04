@@ -16,6 +16,8 @@ pub mod app;
 pub mod program;
 pub mod distro;
 pub mod parser;
+pub mod executor;
+pub mod cli;
 
 use crossterm::{
     event::{DisableMouseCapture, EnableMouseCapture},
@@ -28,12 +30,13 @@ use tui::{
     Terminal,
 };
 use std::{io, env, time::Duration, error::Error, path::Path};
-use clap::{Parser, Subcommand, ValueEnum};
+use cli::{Command, FileType, Shell};
+use clap::Parser;
 
 /// Args struct holding the CL args
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
-struct CLI {
+pub struct CLI {
     /// execute quick operations on programs and exit
     #[command(subcommand)]
     command: Option<Command>,
@@ -52,38 +55,12 @@ struct CLI {
     /// perform checks on all programs and dependencies
     #[arg(long, group = "cli")]
     check: bool,
+
+    /// The shell in which the command shall be executed
+    #[arg(value_enum)]
+    shell: Option<Shell>,
 }
 
-#[derive(Subcommand)]
-enum Command {
-    Install {
-        #[arg(long, short)]
-        /// install all (missing)
-        all: bool,
-    },
-
-    Configure {
-        #[arg(long, short)]
-        /// configure all
-        all: bool,
-    },
-
-    Export {
-        #[arg(value_enum)]
-        filetype: FileType
-    },
-
-    List {
-        #[arg(long)]
-        status: bool
-    }
-}
-
-#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
-enum FileType {
-    Json,
-    Yaml,
-}
 
 fn main() -> Result<(), Box<dyn Error>> {
     if cfg!(debug_assertions) {

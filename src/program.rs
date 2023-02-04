@@ -26,7 +26,10 @@ pub struct Program {
 
     /// status will be determined at runtime
     #[serde(skip)]
-    status: Status
+    status: Status,
+    /// Shell in wich the commands shall be executed...implementation is bad
+    #[serde(skip)]
+    shell: Option<super::cli::Shell>,
 }
 
 impl Program {
@@ -68,15 +71,30 @@ impl Program {
     }
 
     pub fn has_configuration_steps(&self) -> bool {
-        !self.configuration.is_empty() && self.configuration.len() != 0
+        !self.configuration.is_empty()
     }
 
     pub fn has_installation_steps(&self) -> bool {
-        !self.installation.is_empty() && self.installation.len() != 0
+        !self.installation.is_empty()
     }
 
     pub fn has_dependencies(&self) -> bool {
         !self.dependencies.is_empty()
+    }
+
+    fn execute_for_current_dist(&self, steps: &Vec<Steps>) {
+        let current_dist = get_dist();
+        if self.has_installation_steps() {
+            // omg this is so nice
+            let installation_steps = steps::steps_for_dist(steps, &current_dist);
+            if let Some(steps) = installation_steps {
+                steps.execute(&self.shell);
+            } else {
+                println!("No installation instructions for '{}' given", current_dist);
+            }
+        } else {
+            println!("No installation instructions for program '{}' given.", self.name);
+        }
     }
 
     /// Executes installation instructions for the current distro (uses get_dist()) unless it is
@@ -87,34 +105,12 @@ impl Program {
             return;
         }
 
-        let current_dist = get_dist();
-        if self.has_installation_steps() {
-            // omg this is so nice
-            let installation_steps = steps::steps_for_dist(&self.installation, &current_dist);
-            if let Some(steps) = installation_steps {
-                steps.execute();
-            } else {
-                println!("No installation instructions for '{}' given", current_dist);
-            }
-        } else {
-            println!("No installation instructions for program '{}' given.", self.name);
-        }
+        self.execute_for_current_dist(&self.installation);
     }
 
     /// Executes configuration instructions for the current distro (uses get_dist())
     pub fn configure(&self) {
-        let current_dist = get_dist();
-        if self.has_configuration_steps() {
-            // omg this is so nice
-            let configuration_steps = steps::steps_for_dist(&self.configuration, &current_dist);
-            if let Some(steps) = configuration_steps {
-                steps.execute();
-            } else {
-                println!("No configuration instructions for '{}' given", current_dist);
-            }
-        } else {
-            println!("No configuration instructions for program '{}' given.", self.name);
-        }
+        self.execute_for_current_dist(&self.configuration);
     }
 
     pub fn get_status(&self) -> String {
