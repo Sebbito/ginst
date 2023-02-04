@@ -79,30 +79,6 @@ impl Program {
         !self.dependencies.is_empty()
     }
 
-    /// Utilitiy function returning a Steps struct for the users distribution
-    pub fn config_steps_for_dist(&self, dist_name: String) -> Option<Steps> {
-        for steps in self.configuration.clone() {
-            for dist in steps.distro.clone() {
-                if dist == dist_name || dist == "*"{
-                    return Some(steps)
-                }
-            }
-        }
-        None
-    }
-
-    /// Utilitiy function returning a Steps struct for the users distribution
-    pub fn install_steps_for_dist(&self, dist_name: String) -> Option<Steps> {
-        for steps in self.installation.clone() {
-            for dist in steps.distro.clone() {
-                if dist == dist_name || dist == "*"{
-                    return Some(steps)
-                }
-            }
-        }
-        None
-    }
-
     /// Executes installation instructions for the current distro (uses get_dist()) unless it is
     /// already installed
     pub fn install(&self) {
@@ -114,7 +90,7 @@ impl Program {
         let current_dist = get_dist();
         if self.has_installation_steps() {
             // omg this is so nice
-            let installation_steps = self.install_steps_for_dist(current_dist.clone());
+            let installation_steps = steps::steps_for_dist(&self.installation, &current_dist);
             if let Some(steps) = installation_steps {
                 steps.execute();
             } else {
@@ -130,7 +106,7 @@ impl Program {
         let current_dist = get_dist();
         if self.has_configuration_steps() {
             // omg this is so nice
-            let configuration_steps = self.config_steps_for_dist(current_dist.clone());
+            let configuration_steps = steps::steps_for_dist(&self.configuration, &current_dist);
             if let Some(steps) = configuration_steps {
                 steps.execute();
             } else {
@@ -173,6 +149,9 @@ pub fn are_installed(programs: &Vec<Program>) -> bool {
 pub fn install_missing(programs: &Vec<Program>) {
     for prog in programs.clone() {
         prog.install();
+        if prog.has_dependencies() {
+            install_missing(&prog.get_dependencies());
+        }
     }
 }
 
