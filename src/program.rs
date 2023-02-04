@@ -140,6 +140,22 @@ impl Program {
             println!("No configuration instructions for program '{}' given.", self.name);
         }
     }
+
+    pub fn get_status(&self) -> String {
+        if self.is_installed() {
+            "Installed".to_owned()
+        } else {
+            "Missing".to_owned()
+        }
+    }
+
+    pub fn get_status_pretty(&self) -> String {
+        if self.is_installed() {
+            "🗹 Installed".to_owned()
+        } else {
+            "⮽ Missing".to_owned()
+        }
+    }
 }
 
 pub fn are_installed(programs: &Vec<Program>) -> bool {
@@ -168,7 +184,6 @@ pub fn configure_all(programs: &Vec<Program>) {
         }
     }
 }
-
 
 pub fn count_missing(programs: &Vec<Program>) -> u8 {
     let mut counter = 0;
@@ -204,25 +219,34 @@ pub fn print_name(programs: &Vec<Program>) {
     }
 }
 
+pub fn print_status(programs: &Vec<Program>) {
+    for program in programs {
+        println!("{}, {}", program.get_name(), program.get_status());
+        if program.has_dependencies() {
+            print_status(&program.get_dependencies());
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::parser::get_programs_from_file;
 
     #[test]
     fn test_has_config() {
-        let programs = get_programs_from_file("example.yaml".to_owned());
+        let programs = get_programs_from_file(&"example.yaml".to_owned());
         assert!(programs[0].has_configuration_steps());
     }
     #[test]
     fn test_has_install() {
-        let programs = get_programs_from_file("example.yaml".to_owned());
+        let programs = get_programs_from_file(&"example.yaml".to_owned());
         assert!(programs[0].has_installation_steps());
     }
 
     #[test]
     fn test_has_dependencies() {
         // this test is kinda trash but i'm too tired to make it good
-        let programs = get_programs_from_file("example.yaml".to_owned());
+        let programs = get_programs_from_file(&"example.yaml".to_owned());
         assert!(programs[0].has_dependencies());
     }
 

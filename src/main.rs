@@ -28,17 +28,11 @@ use tui::{
     Terminal,
 };
 use std::{io, env, time::Duration, error::Error, path::Path};
-use clap::{ArgGroup, Parser, Subcommand, ValueEnum};
+use clap::{Parser, Subcommand, ValueEnum};
 
 /// Args struct holding the CL args
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
-#[command(group(
-            ArgGroup::new("cli")
-                .required(false)
-                .multiple(false)
-                .args(["count", "count_missing", "list", "list"]),
-        ))]
 struct CLI {
     /// execute quick operations on programs and exit
     #[command(subcommand)]
@@ -48,19 +42,15 @@ struct CLI {
     file: String,
     
     /// count all programs (including dependencies)
-    #[arg(long)]
+    #[arg(long, group = "cli")]
     count: bool,
     
     /// count all missing programs (including dependencies)
-    #[arg(long)]
+    #[arg(long, group = "cli")]
     count_missing: bool,
     
-    /// List all programs contained in file
-    #[arg(long)]
-    list: bool,
-    
     /// perform checks on all programs and dependencies
-    #[arg(long)]
+    #[arg(long, group = "cli")]
     check: bool,
 }
 
@@ -82,6 +72,11 @@ enum Command {
         #[arg(value_enum)]
         filetype: FileType
     },
+
+    List {
+        #[arg(long)]
+        status: bool
+    }
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
@@ -103,8 +98,6 @@ fn main() -> Result<(), Box<dyn Error>> {
         println!("{}", program::count(&programs));
     } else if cli.count_missing {
         println!("{}", program::count_missing(&programs));
-    } else if cli.list {
-        program::print_name(&programs);
     } else if cli.check {
         // parser already ran
         println!("File looks good!");
@@ -133,6 +126,13 @@ fn main() -> Result<(), Box<dyn Error>> {
                         std::fs::write(new_file, string).unwrap();
 
                     },
+                }
+            },
+            Command::List { status } => {
+                if *status {
+                    program::print_status(&programs);
+                } else {
+                    program::print_name(&programs);
                 }
             }
         }

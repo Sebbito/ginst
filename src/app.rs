@@ -162,13 +162,7 @@ fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) {
             let mut lines = vec![Spans::from(i.get_name())];
             
             // get the status text
-            let status = {
-                if i.is_installed() {
-                    "🗹 Installed"
-                } else {
-                    "⮽ Missing"
-                }
-            };
+            let status = i.get_status_pretty();
             // append it to the item
             lines.push(Spans::from(
                 Span::styled(status, Style::default().add_modifier(Modifier::ITALIC))
