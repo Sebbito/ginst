@@ -3,8 +3,9 @@
 //! Crate containing structs representing execution steps
 
 
-use std::process::Command;
 use serde::{Serialize, Deserialize};
+
+use crate::{cli::Shell, executor::Executor};
 
 /// Steps struct representing execution steps
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
@@ -15,20 +16,11 @@ pub struct Steps {
 }
 
 impl Steps {
-    pub fn execute(&self) {
+    pub fn execute(&self, shell: &Option<Shell>) {
         for step in self.steps.clone() {
-
-            if cfg!(debug_assertions) {
-                println!("{0:#?}", step.clone());
-            }
-
-            let output = Command::new("bash").arg("-c").arg(step).output().expect("Could not execute command");
-
-            println!("{}", String::from_utf8(output.stdout).unwrap());
-
-            if !output.status.success() {
-                println!("{}", String::from_utf8(output.stderr).unwrap());
-                panic!("Instruction didn't finish correctly. Aborting")
+            let result = Executor::new(shell.clone(), step).execute();
+            if let Err(error) = result {
+                panic!("{}", error);
             }
         }
     }
@@ -42,6 +34,17 @@ impl Steps {
     }
 }
 
+/// utility function to get instructions for currect dist
+pub fn steps_for_dist<'a>(list: &'a Vec<Steps>, distro: &String) -> Option<&'a Steps> {
+    for steps in list {
+        for dist in steps.distro.clone() {
+            if dist.eq(distro) || dist == "*"{
+                return Some(steps)
+            }
+        }
+    }
+    None
+}
 
 /// Struct representing a collection of steps
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]

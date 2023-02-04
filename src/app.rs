@@ -5,14 +5,13 @@
 use crossterm::event::{self, Event, KeyCode};
 use std::{
     io,
-    time::{Duration, Instant},
-};
+    time::{Duration, Instant}};
 use tui::{
     backend::Backend,
     style::{Color, Modifier, Style},
     text::{Span, Spans},
     widgets::{Block, Borders, List, ListItem, ListState},
-    Frame, Terminal,
+    Frame, Terminal, layout::{Direction, Constraint, Layout},
 };
 
 use crate::program::Program;
@@ -117,9 +116,9 @@ pub fn run_app<B: Backend>(
                     KeyCode::Right | KeyCode::Char('l') => {
                         // render new app with the selected items' dependencies like a submenu
                         if selected.is_some() {
-                            let deps = selected.unwrap().dependencies.clone();
-                            if deps.len() != 0 {
-                                let sub_app = App::new(deps.programs);
+                            let dependencies = selected.unwrap().get_dependencies();
+                            if dependencies.len() != 0 {
+                                let sub_app = App::new(dependencies);
                                 run_app(terminal, sub_app, tick_rate, true)?;
                             }
                         }
@@ -141,6 +140,18 @@ pub fn run_app<B: Backend>(
     }
 }
 
+fn generate_key_overview_box() -> Block<'static> {
+    Block::default()
+        .title(Span::styled(
+            "q = quit, i/<Enter> = install, c = configure, arrow keys/h,j,k,l = move",
+            Style::default()
+                .fg(Color::White)
+                .bg(Color::Red)
+                .add_modifier(Modifier::BOLD),
+        ))
+        .title_alignment(tui::layout::Alignment::Center)
+}
+
 fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) {
     // Iterate through all elements in the `items` app and append some info to it.
     let items: Vec<ListItem> = app
@@ -148,16 +159,10 @@ fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) {
         .items
         .iter()
         .map(|i| {
-            let mut lines = vec![Spans::from(i.name.clone())];
+            let mut lines = vec![Spans::from(i.get_name())];
             
             // get the status text
-            let status = {
-                if i.is_installed() {
-                    "🗹 Installed"
-                } else {
-                    "⮽ Missing"
-                }
-            };
+            let status = i.get_status_pretty();
             // append it to the item
             lines.push(Spans::from(
                 Span::styled(status, Style::default().add_modifier(Modifier::ITALIC))
@@ -190,8 +195,16 @@ fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) {
         .highlight_symbol("-> ");
 
     // take the terminal size as window size
-    let rect = f.size();
+    // let rect = f.size();
+
+    // create two chunks one for the key overview and one for the list
+    let chunks = Layout::default()
+        .direction(Direction::Vertical)
+        .margin(5)
+        .constraints([Constraint::Percentage(90), Constraint::Percentage(10)].as_ref())
+        .split(f.size());
 
     // We can now render the item list
-    f.render_stateful_widget(items, rect, &mut app.items.state);
+    f.render_stateful_widget(items, chunks[0], &mut app.items.state);
+    f.render_widget(generate_key_overview_box(), chunks[1]);
 }
