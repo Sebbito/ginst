@@ -196,7 +196,7 @@ pub fn print_name(programs: &Vec<Program>) {
 
 pub fn print_status(programs: &Vec<Program>) {
     for program in programs {
-        println!("{}, {}", program.get_name(), program.get_status());
+        println!("{},{}", program.get_name(), program.get_status());
         if program.has_dependencies() {
             print_status(&program.get_dependencies());
         }
