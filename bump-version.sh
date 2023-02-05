@@ -24,4 +24,7 @@ else
     exit 1
 fi
 
+cargo build
+cargo test
+
 exit 0
