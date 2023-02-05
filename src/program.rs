@@ -98,7 +98,8 @@ impl Program {
     }
 }
 
-impl Sublistable<Program> for Program {
+impl Sublistable for Program {
+    type ReturnType = Program;
     fn get_sublist(&self) -> Vec<Program> {
         self.get_dependencies()
     }

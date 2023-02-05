@@ -51,12 +51,12 @@ pub trait Runnable {
 }
 
 /// promises to return a sublist of items with the same type
-pub trait Sublistable<T: Clone>{
-    fn get_sublist(&self) -> Vec<T>;
+pub trait Sublistable: Clone {
+    type ReturnType: Programable;
+    fn get_sublist(&self) -> Vec<Self::ReturnType>;
 }
 
-use crate::program::Program;
-pub trait Programable: Sublistable<Program> + Clone {
+pub trait Programable: Sublistable + Clone {
     fn get_name(&self) -> String;
     fn install(&self);
     fn configure(&self);
