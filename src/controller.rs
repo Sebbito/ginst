@@ -4,7 +4,7 @@ use std::{path::Path, error::Error};
 
 pub fn handle_arguments(args: Arguments) -> Result<(), Box<dyn Error>> {
     let file = &args.file;
-    let programs: Vec<program::Program>= parser::get_programs_from_file(&args.file);
+    let programs: Vec<program::Program>= parser::get_programs_from_file(file);
 
     if args.count {
         println!("{}", program::count(&programs));
@@ -29,12 +29,12 @@ pub fn handle_arguments(args: Arguments) -> Result<(), Box<dyn Error>> {
                 match filetype {
                     FileType::Json => {
                         let string = serde_json::to_string_pretty(&programs).unwrap();
-                        let new_file = Path::new(&file).with_extension("json");
+                        let new_file = Path::new(file).with_extension("json");
                         std::fs::write(new_file, string).unwrap();
                     },
                     FileType::Yaml => {
                         let string = serde_yaml::to_string(&programs).unwrap();
-                        let new_file = Path::new(&file).with_extension("json");
+                        let new_file = Path::new(file).with_extension("json");
                         std::fs::write(new_file, string).unwrap();
 
                     },
@@ -49,10 +49,7 @@ pub fn handle_arguments(args: Arguments) -> Result<(), Box<dyn Error>> {
             }
         }
     } else {
-        let app = display::tui::App::new(programs.clone());
-        if let Err(error) = display::run_app(&app) {
-            panic!("{:?}", error);
-        }
+        display::run_ui(display::UI::TUI, programs);
     }
     Ok(())
 
