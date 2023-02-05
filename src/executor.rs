@@ -1,4 +1,4 @@
-use crate::cli::Shell;
+use crate::types::Shell;
 use std::process::{Command, ExitStatus};
 
 #[derive(Debug)]

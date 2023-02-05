@@ -6,7 +6,7 @@ pub mod steps;
 
 use std::process::{Command, Stdio};
 use serde::{Deserialize, Serialize};
-use crate::distro::get_dist;
+use crate::{distro::get_dist, types::{Programable, Sublistable}};
 use self::steps::Steps;
 
 /// Struct indicating the programs installation status
@@ -29,20 +29,12 @@ pub struct Program {
     status: Status,
     /// Shell in wich the commands shall be executed...implementation is bad
     #[serde(skip)]
-    shell: Option<super::cli::Shell>,
+    shell: Option<super::types::Shell>,
 }
 
 impl Program {
-    pub fn get_name(&self) -> String {
-        self.name.clone()
-    }
-
     pub fn get_dependencies(&self) -> Vec<Program>{
         self.dependencies.clone()
-    }
-
-    pub fn is_installed(&self) -> bool {
-        self.status == Status::Installed && are_installed(&self.dependencies)
     }
 
     /// Checks if a program is installed using the `command -v` command.
@@ -82,7 +74,7 @@ impl Program {
         !self.dependencies.is_empty()
     }
 
-    fn execute_for_current_dist(&self, steps: &Vec<Steps>) {
+    fn execute(&self, steps: &Vec<Steps>) {
         let current_dist = get_dist();
         if self.has_installation_steps() {
             // omg this is so nice
@@ -97,22 +89,6 @@ impl Program {
         }
     }
 
-    /// Executes installation instructions for the current distro (uses get_dist()) unless it is
-    /// already installed
-    pub fn install(&self) {
-        if self.is_installed() {
-            println!("{} is already installed", self.name);
-            return;
-        }
-
-        self.execute_for_current_dist(&self.installation);
-    }
-
-    /// Executes configuration instructions for the current distro (uses get_dist())
-    pub fn configure(&self) {
-        self.execute_for_current_dist(&self.configuration);
-    }
-
     pub fn get_status(&self) -> String {
         if self.is_installed() {
             "Installed".to_owned()
@@ -120,13 +96,37 @@ impl Program {
             "Missing".to_owned()
         }
     }
+}
 
-    pub fn get_status_pretty(&self) -> String {
+impl Sublistable<Program> for Program {
+    fn get_sublist(&self) -> Vec<Program> {
+        self.get_dependencies()
+    }
+}
+
+impl Programable for Program {
+    fn get_name(&self) -> String {
+        self.name.clone()
+    }
+
+    /// Executes installation instructions for the current distro (uses get_dist()) unless it is
+    /// already installed
+    fn install(&self) {
         if self.is_installed() {
-            "🗹 Installed".to_owned()
-        } else {
-            "⮽ Missing".to_owned()
+            println!("{} is already installed", self.name);
+            return;
         }
+
+        self.execute(&self.installation);
+    }
+
+    /// Executes configuration instructions for the current distro (uses get_dist())
+    fn configure(&self) {
+        self.execute(&self.configuration);
+    }
+
+    fn is_installed(&self) -> bool {
+        self.status == Status::Installed && are_installed(&self.dependencies)
     }
 }
 

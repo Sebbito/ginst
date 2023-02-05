@@ -5,7 +5,7 @@
 
 use serde::{Serialize, Deserialize};
 
-use crate::{cli::Shell, executor::Executor};
+use crate::{types::Shell, executor::Executor};
 
 /// Steps struct representing execution steps
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
@@ -44,25 +44,4 @@ pub fn steps_for_dist<'a>(list: &'a Vec<Steps>, distro: &String) -> Option<&'a S
         }
     }
     None
-}
-
-/// Struct representing a collection of steps
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
-pub struct InstructionSet{
-    execution_steps: Vec<Steps>
-}
-
-impl InstructionSet {
-
-    pub fn len(&self) -> usize {
-        self.execution_steps.len()
-    }
-
-    pub fn is_empty(&self) -> bool {
-        self.execution_steps.is_empty()
-    }
-
-    pub fn push(&mut self, step: Steps) {
-        self.execution_steps.push(step);
-    }
 }

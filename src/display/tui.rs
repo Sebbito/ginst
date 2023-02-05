@@ -5,7 +5,7 @@
 use crossterm::event::{self, Event, KeyCode};
 use std::{
     io,
-    time::{Duration, Instant}};
+    time::{Duration, Instant}, error::Error};
 use tui::{
     backend::Backend,
     style::{Color, Modifier, Style},
@@ -14,8 +14,9 @@ use tui::{
     Frame, Terminal, layout::{Direction, Constraint, Layout},
 };
 
-use crate::program::Program;
+use crate::types::Programable;
 
+#[derive(Clone)]
 struct StatefulList<T> {
     state: ListState,
     items: Vec<T>,
@@ -68,21 +69,60 @@ impl<T> StatefulList<T> {
 ///
 /// Check the event handling at the bottom to see how to change the state on incoming events.
 /// Check the drawing logic for items on how to specify the highlighting style for selected items.
-pub struct App {
-    items: StatefulList<Program>
+use crossterm::{
+event::{DisableMouseCapture, EnableMouseCapture},
+execute,
+terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
+};
+use tui::backend::CrosstermBackend;
+use crate::types::Runnable;
+
+#[derive(Clone)]
+pub struct App<T: Programable> {
+    items: StatefulList<T>,
 }
 
-impl App {
-    pub fn new(programs: Vec<Program>) -> App {
+impl<T: Programable> App<T> {
+    pub fn new(items: Vec<T>) -> App<T> {
         App {
-            items: StatefulList::with_items(programs)
+            items: StatefulList::with_items(items)
         }
     }
 }
 
-pub fn run_app<B: Backend>(
+impl<T: Programable> Runnable for App<T> {
+    fn run(&self) -> Result<(), Box<dyn Error>> {
+        // setup terminal
+        enable_raw_mode()?;
+        let mut stdout = io::stdout();
+        execute!(stdout, EnterAlternateScreen, EnableMouseCapture)?;
+        let backend = CrosstermBackend::new(stdout);
+        let mut terminal = Terminal::new(backend)?;
+
+        // create app and run it
+        let tick_rate = Duration::from_millis(250);
+        let res = run_app(&mut terminal, self.clone(), tick_rate, false);
+
+            // restore terminal
+        disable_raw_mode()?;
+        execute!(
+            terminal.backend_mut(),
+            LeaveAlternateScreen,
+            DisableMouseCapture
+        )?;
+        terminal.show_cursor()?;
+
+        if let Err(err) = res {
+            println!("{:?}", err);
+        }
+        Ok(())
+
+    }
+}
+
+pub fn run_app<B: Backend, T: Programable>(
     terminal: &mut Terminal<B>,
-    mut app: App,
+    mut app: App<T>,
     tick_rate: Duration,
     is_submenu: bool
 ) -> io::Result<()> {
@@ -96,7 +136,7 @@ pub fn run_app<B: Backend>(
         if crossterm::event::poll(timeout)? {
             if let Event::Key(key) = event::read()? {
                 let index = app.items.state.selected();
-                let selected: Option<Program> = {
+                let selected: Option<T> = {
                     if index.is_some() {
                         Some(app.items.items[index.unwrap()].clone())
                     } else {
@@ -116,10 +156,10 @@ pub fn run_app<B: Backend>(
                     KeyCode::Right | KeyCode::Char('l') => {
                         // render new app with the selected items' dependencies like a submenu
                         if selected.is_some() {
-                            let dependencies = selected.unwrap().get_dependencies();
+                            let dependencies = selected.unwrap().get_sublist();
                             if dependencies.len() != 0 {
                                 let sub_app = App::new(dependencies);
-                                run_app(terminal, sub_app, tick_rate, true)?;
+                                run_app(terminal, sub_app.clone(), tick_rate, true)?;
                             }
                         }
                     },
@@ -152,7 +192,7 @@ fn generate_key_overview_box() -> Block<'static> {
         .title_alignment(tui::layout::Alignment::Center)
 }
 
-fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) {
+fn ui<B: Backend, T: Programable + Clone>(f: &mut Frame<B>, app: &mut App<T>) {
     // Iterate through all elements in the `items` app and append some info to it.
     let items: Vec<ListItem> = app
         .items
@@ -162,14 +202,17 @@ fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) {
             let mut lines = vec![Spans::from(i.get_name())];
             
             // get the status text
-            let status = i.get_status_pretty();
+            let status = match i.is_installed() {
+                true => "🗹 Installed".to_owned(),
+                false => "⮽ Missing".to_owned(),
+            };
             // append it to the item
             lines.push(Spans::from(
                 Span::styled(status, Style::default().add_modifier(Modifier::ITALIC))
             ));
             
             // optionally append a hint for subitems to it
-            if i.has_dependencies() {
+            if !i.get_sublist().is_empty() {
                 lines.push(Spans::from(
                     Span::styled(">>>", Style::default().add_modifier(Modifier::ITALIC))
                 ));
