@@ -51,9 +51,8 @@ pub trait Runnable {
 }
 
 /// promises to return a sublist of items with the same type
-pub trait Sublistable: Clone {
-    type ReturnType: Programable;
-    fn get_sublist(&self) -> Vec<Self::ReturnType>;
+pub trait Sublistable<T=Self> {
+    fn get_sublist(&self) -> Vec<T>;
 }
 
 pub trait Programable: Sublistable + Clone {
