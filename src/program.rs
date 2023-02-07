@@ -74,18 +74,14 @@ impl Program {
         !self.dependencies.is_empty()
     }
 
-    fn execute(&self, steps: &Vec<Steps>) {
+    fn steps_for_current_dist(&self, steps: &Vec<Steps>) -> Option<Steps>{
         let current_dist = get_dist();
-        if self.has_installation_steps() {
-            // omg this is so nice
-            let installation_steps = steps::steps_for_dist(steps, &current_dist);
-            if let Some(steps) = installation_steps {
-                steps.execute(&self.shell);
-            } else {
-                println!("No installation instructions for '{}' given", current_dist);
-            }
+
+        if !steps.is_empty() {
+            steps::steps_for_dist(steps.clone(), &current_dist)
         } else {
-            println!("No installation instructions for program '{}' given.", self.name);
+            println!("Instructions are empty");
+            None
         }
     }
 
@@ -112,17 +108,24 @@ impl Programable for Program {
     /// Executes installation instructions for the current distro (uses get_dist()) unless it is
     /// already installed
     fn install(&self) {
+        let instructions = &self.installation;
         if self.is_installed() {
             println!("{} is already installed", self.name);
             return;
         }
 
-        self.execute(&self.installation);
+        if let Some(steps) = self.steps_for_current_dist(instructions) {
+            steps.execute(&self.shell);
+        }
     }
 
     /// Executes configuration instructions for the current distro (uses get_dist())
     fn configure(&self) {
-        self.execute(&self.configuration);
+        let instructions = &self.configuration;
+
+        if let Some(steps) = self.steps_for_current_dist(instructions) {
+            steps.execute(&self.shell);
+        }
     }
 
     fn is_installed(&self) -> bool {

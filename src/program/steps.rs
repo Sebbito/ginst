@@ -4,7 +4,6 @@
 
 
 use serde::{Serialize, Deserialize};
-
 use crate::{types::Shell, executor::Executor};
 
 /// Steps struct representing execution steps
@@ -18,10 +17,7 @@ pub struct Steps {
 impl Steps {
     pub fn execute(&self, shell: &Option<Shell>) {
         for step in self.steps.clone() {
-            let result = Executor::new(shell.clone(), step).execute();
-            if let Err(error) = result {
-                panic!("{}", error);
-            }
+            Executor::new(shell.clone(), step).execute().unwrap();
         }
     }
 
@@ -35,7 +31,7 @@ impl Steps {
 }
 
 /// utility function to get instructions for currect dist
-pub fn steps_for_dist<'a>(list: &'a Vec<Steps>, distro: &String) -> Option<&'a Steps> {
+pub fn steps_for_dist(list: Vec<Steps>, distro: &String) -> Option<Steps> {
     for steps in list {
         for dist in steps.distro.clone() {
             if dist.eq(distro) || dist == "*"{
