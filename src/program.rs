@@ -6,7 +6,7 @@ pub mod steps;
 
 use std::process::{Command, Stdio};
 use serde::{Deserialize, Serialize};
-use crate::distro::get_dist;
+use crate::{distro::get_dist, types::{Programable, Sublistable}};
 use self::steps::Steps;
 
 /// Struct indicating the programs installation status
@@ -29,27 +29,19 @@ pub struct Program {
     status: Status,
     /// Shell in wich the commands shall be executed...implementation is bad
     #[serde(skip)]
-    shell: Option<super::cli::Shell>,
+    shell: Option<super::types::Shell>,
 }
 
 impl Program {
-    pub fn get_name(&self) -> String {
-        self.name.clone()
-    }
-
     pub fn get_dependencies(&self) -> Vec<Program>{
         self.dependencies.clone()
     }
 
-    pub fn is_installed(&self) -> bool {
-        self.status == Status::Installed && are_installed(&self.dependencies)
-    }
-
     /// Checks if a program is installed using the `command -v` command.
     pub fn check(&self) -> Status {
-        /* Performs a check if the program is installed */
-        let status = Command::new("command")
-                        .arg("-v")
+        // Performs a check if the program is installed
+        // use type since it also finds builtins like fisher on fish
+        let status = Command::new("type")
                         .arg(&self.name)
                         .stdout(Stdio::null())
                         .status()
@@ -82,35 +74,15 @@ impl Program {
         !self.dependencies.is_empty()
     }
 
-    fn execute_for_current_dist(&self, steps: &Vec<Steps>) {
+    fn steps_for_current_dist(&self, steps: &Vec<Steps>) -> Option<Steps>{
         let current_dist = get_dist();
-        if self.has_installation_steps() {
-            // omg this is so nice
-            let installation_steps = steps::steps_for_dist(steps, &current_dist);
-            if let Some(steps) = installation_steps {
-                steps.execute(&self.shell);
-            } else {
-                println!("No installation instructions for '{}' given", current_dist);
-            }
+
+        if !steps.is_empty() {
+            steps::steps_for_dist(steps.clone(), &current_dist)
         } else {
-            println!("No installation instructions for program '{}' given.", self.name);
+            println!("Instructions are empty");
+            None
         }
-    }
-
-    /// Executes installation instructions for the current distro (uses get_dist()) unless it is
-    /// already installed
-    pub fn install(&self) {
-        if self.is_installed() {
-            println!("{} is already installed", self.name);
-            return;
-        }
-
-        self.execute_for_current_dist(&self.installation);
-    }
-
-    /// Executes configuration instructions for the current distro (uses get_dist())
-    pub fn configure(&self) {
-        self.execute_for_current_dist(&self.configuration);
     }
 
     pub fn get_status(&self) -> String {
@@ -120,20 +92,55 @@ impl Program {
             "Missing".to_owned()
         }
     }
+}
 
-    pub fn get_status_pretty(&self) -> String {
+impl Sublistable for Program {
+    fn get_sublist(&self) -> Vec<Program> {
+        self.get_dependencies()
+    }
+}
+
+impl Programable for Program {
+    fn get_name(&self) -> String {
+        self.name.clone()
+    }
+
+    /// Executes installation instructions for the current distro (uses get_dist()) unless it is
+    /// already installed
+    fn install(&self) {
+        let instructions = &self.installation;
         if self.is_installed() {
-            "🗹 Installed".to_owned()
+            println!("{} is already installed", self.name);
         } else {
-            "⮽ Missing".to_owned()
+            if !are_installed(&self.dependencies) {
+                install_missing(&self.dependencies);
+            }
+
+            if let Some(steps) = self.steps_for_current_dist(instructions) {
+                steps.execute(&self.shell);
+            }
         }
+
+    }
+
+    /// Executes configuration instructions for the current distro (uses get_dist())
+    fn configure(&self) {
+        let instructions = &self.configuration;
+
+        if let Some(steps) = self.steps_for_current_dist(instructions) {
+            steps.execute(&self.shell);
+        }
+    }
+
+    fn is_installed(&self) -> bool {
+        self.status == Status::Installed && are_installed(&self.dependencies)
     }
 }
 
 pub fn are_installed(programs: &Vec<Program>) -> bool {
     if !programs.is_empty() {
-        for val in programs.clone().iter_mut().map(|d| d.is_installed()) {
-            if !val {
+        for is_installed in programs.clone().iter_mut().map(|d| d.is_installed()) {
+            if !is_installed {
                 return false;
             }
         }
@@ -144,9 +151,11 @@ pub fn are_installed(programs: &Vec<Program>) -> bool {
 
 pub fn install_missing(programs: &Vec<Program>) {
     for prog in programs.clone() {
-        prog.install();
-        if prog.has_dependencies() {
-            install_missing(&prog.get_dependencies());
+        if !prog.is_installed() {
+            if prog.has_dependencies() {
+                install_missing(&prog.get_dependencies());
+            }
+            prog.install();
         }
     }
 }

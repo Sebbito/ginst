@@ -24,7 +24,7 @@ pub fn get_programs_from_file(path: &String) -> Vec<Program> {
 
     let mut programs = match extension.to_str().unwrap() {
         "json" => from_json_file(&file_contents),
-        "yaml" => from_yaml_file(&file_contents),
+        "yaml" | "yml" => from_yaml_file(&file_contents),
         _ => panic!("Unsupported file type {}", extension.to_str().unwrap())
     };
 

@@ -12,31 +12,23 @@
 //!
 //! For more information see the [ginst Wiki](https://github.com/Sebbito/ginst/wiki)
 
-pub mod app;
 pub mod program;
 pub mod distro;
 pub mod parser;
 pub mod executor;
-pub mod cli;
+pub mod types;
+pub mod display;
 
-use crossterm::{
-    event::{DisableMouseCapture, EnableMouseCapture},
-    execute,
-    terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
-};
-
-use tui::{
-    backend::CrosstermBackend,
-    Terminal,
-};
-use std::{io, env, time::Duration, error::Error, path::Path};
-use cli::{Command, FileType, Shell};
+use std::env;
+use types::Shell;
 use clap::Parser;
+use crate::types::{Command, FileType};
+use std::{path::Path, error::Error};
 
 /// Args struct holding the CL args
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
-pub struct CLI {
+pub struct Arguments {
     /// execute quick operations on programs and exit
     #[command(subcommand)]
     command: Option<Command>,
@@ -67,18 +59,18 @@ fn main() -> Result<(), Box<dyn Error>> {
         env::set_var("RUST_BACKTRACE", "1");
     }
 
-    let cli = CLI::parse();
-    let file = &cli.file;
-    let programs: Vec<program::Program>= parser::get_programs_from_file(&cli.file);
+    let args = Arguments::parse();
+    let file = &args.file;
+    let programs: Vec<program::Program>= parser::get_programs_from_file(file);
 
-    if cli.count {
+    if args.count {
         println!("{}", program::count(&programs));
-    } else if cli.count_missing {
+    } else if args.count_missing {
         println!("{}", program::count_missing(&programs));
-    } else if cli.check {
+    } else if args.check {
         // parser already ran
         println!("File looks good!");
-    } else if let Some(command) = cli.command {
+    } else if let Some(command) = args.command {
         match &command {
             Command::Install { all } => {
                 if *all {
@@ -94,12 +86,12 @@ fn main() -> Result<(), Box<dyn Error>> {
                 match filetype {
                     FileType::Json => {
                         let string = serde_json::to_string_pretty(&programs).unwrap();
-                        let new_file = Path::new(&file).with_extension("json");
+                        let new_file = Path::new(file).with_extension("json");
                         std::fs::write(new_file, string).unwrap();
                     },
                     FileType::Yaml => {
                         let string = serde_yaml::to_string(&programs).unwrap();
-                        let new_file = Path::new(&file).with_extension("json");
+                        let new_file = Path::new(file).with_extension("json");
                         std::fs::write(new_file, string).unwrap();
 
                     },
@@ -114,31 +106,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             }
         }
     } else {
-        // setup terminal
-        enable_raw_mode()?;
-        let mut stdout = io::stdout();
-        execute!(stdout, EnterAlternateScreen, EnableMouseCapture)?;
-        let backend = CrosstermBackend::new(stdout);
-        let mut terminal = Terminal::new(backend)?;
-
-        // create app and run it
-        let tick_rate = Duration::from_millis(250);
-        let app = app::App::new(programs);
-        let res = app::run_app(&mut terminal, app, tick_rate, false);
-
-        // restore terminal
-        disable_raw_mode()?;
-        execute!(
-            terminal.backend_mut(),
-            LeaveAlternateScreen,
-            DisableMouseCapture
-        )?;
-        terminal.show_cursor()?;
-
-        if let Err(err) = res {
-            println!("{:?}", err)
-        }
+        display::run_ui(display::UI::TUI, programs);
     }
-
     Ok(())
 }
