@@ -40,8 +40,7 @@ impl Program {
     /// Checks if a program is installed using the `command -v` command.
     pub fn check(&self) -> Status {
         /* Performs a check if the program is installed */
-        let status = Command::new("command")
-                        .arg("-v")
+        let status = Command::new("type")
                         .arg(&self.name)
                         .stdout(Stdio::null())
                         .status()
@@ -111,12 +110,16 @@ impl Programable for Program {
         let instructions = &self.installation;
         if self.is_installed() {
             println!("{} is already installed", self.name);
-            return;
+        } else {
+            if !are_installed(&self.dependencies) {
+                install_missing(&self.dependencies);
+            }
+
+            if let Some(steps) = self.steps_for_current_dist(instructions) {
+                steps.execute(&self.shell);
+            }
         }
 
-        if let Some(steps) = self.steps_for_current_dist(instructions) {
-            steps.execute(&self.shell);
-        }
     }
 
     /// Executes configuration instructions for the current distro (uses get_dist())
@@ -135,8 +138,8 @@ impl Programable for Program {
 
 pub fn are_installed(programs: &Vec<Program>) -> bool {
     if !programs.is_empty() {
-        for val in programs.clone().iter_mut().map(|d| d.is_installed()) {
-            if !val {
+        for is_installed in programs.clone().iter_mut().map(|d| d.is_installed()) {
+            if !is_installed {
                 return false;
             }
         }
@@ -147,9 +150,11 @@ pub fn are_installed(programs: &Vec<Program>) -> bool {
 
 pub fn install_missing(programs: &Vec<Program>) {
     for prog in programs.clone() {
-        prog.install();
-        if prog.has_dependencies() {
-            install_missing(&prog.get_dependencies());
+        if !prog.is_installed() {
+            if prog.has_dependencies() {
+                install_missing(&prog.get_dependencies());
+            }
+            prog.install();
         }
     }
 }
