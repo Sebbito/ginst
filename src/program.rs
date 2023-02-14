@@ -39,7 +39,8 @@ impl Program {
 
     /// Checks if a program is installed using the `command -v` command.
     pub fn check(&self) -> Status {
-        /* Performs a check if the program is installed */
+        // Performs a check if the program is installed
+        // use type since it also finds builtins like fisher on fish
         let status = Command::new("type")
                         .arg(&self.name)
                         .stdout(Stdio::null())
