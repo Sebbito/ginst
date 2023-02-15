@@ -4,9 +4,8 @@
 
 pub mod steps;
 
-use std::process::{Command, Stdio};
 use serde::{Deserialize, Serialize};
-use crate::{distro::get_dist, types::{Programable, Sublistable}};
+use crate::{distro::get_dist, types::{Programable, Sublistable}, executor::Executor};
 use self::steps::Steps;
 
 /// Struct indicating the programs installation status
@@ -27,9 +26,9 @@ pub struct Program {
     /// status will be determined at runtime
     #[serde(skip)]
     status: Status,
-    /// Shell in wich the commands shall be executed...implementation is bad
+    /// Shell in wich the commands shall be executed
     #[serde(skip)]
-    shell: Option<super::types::Shell>,
+    shell: Option<String>,
 }
 
 impl Program {
@@ -37,15 +36,12 @@ impl Program {
         self.dependencies.clone()
     }
 
-    /// Checks if a program is installed using the `command -v` command.
+    /// Checks if a program is installed using `type`.
     pub fn check(&self) -> Status {
         // Performs a check if the program is installed
         // use type since it also finds builtins like fisher on fish
-        let status = Command::new("type")
-                        .arg(&self.name)
-                        .stdout(Stdio::null())
-                        .status()
-                        .expect("Failed to execute.");
+        let command = format!("type {}", self.name);
+        let status = Executor::new(self.shell.clone(), command).execute().unwrap();
 
         if status.success() {
             Status::Installed

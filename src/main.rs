@@ -20,7 +20,6 @@ pub mod types;
 pub mod display;
 
 use std::env;
-use types::Shell;
 use clap::Parser;
 use crate::types::{Command, FileType};
 use std::{path::Path, error::Error};
@@ -50,7 +49,7 @@ pub struct Arguments {
 
     /// The shell in which the command shall be executed
     #[arg(value_enum)]
-    shell: Option<Shell>,
+    shell: Option<String>,
 }
 
 

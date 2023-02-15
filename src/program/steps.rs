@@ -4,7 +4,7 @@
 
 
 use serde::{Serialize, Deserialize};
-use crate::{types::Shell, executor::Executor};
+use crate::executor::Executor;
 
 /// Steps struct representing execution steps
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
@@ -15,7 +15,7 @@ pub struct Steps {
 }
 
 impl Steps {
-    pub fn execute(&self, shell: &Option<Shell>) {
+    pub fn execute(&self, shell: &Option<String>) {
         for step in self.steps.clone() {
             Executor::new(shell.clone(), step).execute().unwrap();
         }
