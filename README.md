@@ -12,7 +12,7 @@ The tool takes a file and tries to execute the commands given.
 ## Installation
 
 ```bash
-curl --proto '=https' -sSf  https://github.com/Sebbito/ginst/blob/main/install.sh | sh
+curl --proto '=https' -sSf  https://raw.githubusercontent.com/Sebbito/ginst/main/install.sh | sh
 ```
 
 ## Usage
