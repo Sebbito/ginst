@@ -23,6 +23,6 @@ else
     exit 1
 fi
 
-$project_root/test.sh
+$project_root/tools/test.sh
 
 exit 0
