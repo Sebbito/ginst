@@ -216,21 +216,23 @@ pub fn print_status(programs: &Vec<Program>) {
 mod tests {
     use crate::parser::get_programs_from_file;
 
+    const Path: &str = "examples/example.yaml";
+
     #[test]
     fn test_has_config() {
-        let programs = get_programs_from_file(&"example.yaml".to_owned());
+        let programs = get_programs_from_file(Path);
         assert!(programs[0].has_configuration_steps());
     }
     #[test]
     fn test_has_install() {
-        let programs = get_programs_from_file(&"example.yaml".to_owned());
+        let programs = get_programs_from_file(Path);
         assert!(programs[0].has_installation_steps());
     }
 
     #[test]
     fn test_has_dependencies() {
         // this test is kinda trash but i'm too tired to make it good
-        let programs = get_programs_from_file(&"example.yaml".to_owned());
+        let programs = get_programs_from_file(Path);
         assert!(programs[0].has_dependencies());
     }
 
