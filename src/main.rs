@@ -91,7 +91,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                     },
                     FileType::Yaml => {
                         let string = serde_yaml::to_string(&programs).unwrap();
-                        let new_file = Path::new(file).with_extension("json");
+                        let new_file = Path::new(file).with_extension("yml");
                         std::fs::write(new_file, string).unwrap();
 
                     },
