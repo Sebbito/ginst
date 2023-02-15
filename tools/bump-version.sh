@@ -2,8 +2,7 @@
 
 script_dir=$(dirname $(realpath $0))
 project_root=$(dirname $script_dir)
-
-path="$project_root/ginst/Cargo.toml"
+path="$project_root/Cargo.toml"
 
 if [ $# -eq 1 ]; then
     if [[ $1 =~ ^[0-9]\.[0-9]\.[0-9]$ ]]; then
@@ -24,7 +23,6 @@ else
     exit 1
 fi
 
-cargo build
-cargo test
+$project_root/tools/test.sh
 
 exit 0
