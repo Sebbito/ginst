@@ -21,6 +21,7 @@ pub mod display;
 
 use std::env;
 use clap::Parser;
+use program::Program;
 use crate::types::{Command, FileType};
 use std::{path::Path, error::Error};
 
@@ -59,8 +60,10 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
 
     let args = Arguments::parse();
+    let shell = executor::eval_shell(args.shell);
+    env::set_var("EXECUTE_SHELL", shell);
     let file = &args.file;
-    let programs: Vec<program::Program>= parser::get_programs_from_file(file);
+    let programs: Vec<Program>= parser::get_programs_from_file(file);
 
     if args.count {
         println!("{}", program::count(&programs));

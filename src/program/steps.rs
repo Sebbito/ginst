@@ -15,10 +15,8 @@ pub struct Steps {
 }
 
 impl Steps {
-    pub fn execute(&self, shell: &Option<String>) {
-        for step in self.steps.clone() {
-            Executor::new(shell.clone(), step).execute().unwrap();
-        }
+    pub fn execute(&self) {
+        Executor::new().execute_steps(self.steps.clone());
     }
 
     pub fn len(&self) -> usize {

@@ -26,9 +26,6 @@ pub struct Program {
     /// status will be determined at runtime
     #[serde(skip)]
     status: Status,
-    /// Shell in wich the commands shall be executed
-    #[serde(skip)]
-    shell: Option<String>,
 }
 
 impl Program {
@@ -41,7 +38,7 @@ impl Program {
         // Performs a check if the program is installed
         // use type since it also finds builtins like fisher on fish
         let command = format!("type {}", self.name);
-        let status = Executor::new(self.shell.clone(), command).execute().unwrap();
+        let status = Executor::new().execute(command).unwrap();
 
         if status.success() {
             Status::Installed
@@ -113,7 +110,7 @@ impl Programable for Program {
             }
 
             if let Some(steps) = self.steps_for_current_dist(instructions) {
-                steps.execute(&self.shell);
+                steps.execute();
             }
         }
 
@@ -124,7 +121,7 @@ impl Programable for Program {
         let instructions = &self.configuration;
 
         if let Some(steps) = self.steps_for_current_dist(instructions) {
-            steps.execute(&self.shell);
+            steps.execute();
         }
     }
 
