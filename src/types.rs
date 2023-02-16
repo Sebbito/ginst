@@ -37,13 +37,6 @@ pub enum FileType {
     Yaml,
 }
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
-pub enum Shell {
-    Bash,
-    Zsh,
-    Fish,
-}
-
 
 /// promises to have a run function
 pub trait Runnable {

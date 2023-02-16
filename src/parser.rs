@@ -19,7 +19,8 @@ fn from_yaml_file(file_contents: &String) -> Vec<Program> {
 }
 
 pub fn get_programs_from_file(path: &str) -> Vec<Program> {
-    let extension = std::path::Path::new(&path).extension().unwrap();
+    let binding = std::path::Path::new(&path).canonicalize().expect("Could not unfold given Path");
+    let extension = binding.extension().unwrap();
     let file_contents = std::fs::read_to_string(&path).unwrap();
 
     let mut programs = match extension.to_str().unwrap() {
