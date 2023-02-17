@@ -1,4 +1,7 @@
-use std::{process::{Command, ExitStatus, Stdio}, env};
+use std::{
+    env,
+    process::{Command, ExitStatus, Stdio},
+};
 
 #[derive(Debug, Clone)]
 pub struct Executor {
@@ -7,7 +10,7 @@ pub struct Executor {
 
 impl Executor {
     pub fn new() -> Executor {
-        let shell = match env::var("EXECUTE_SHELL"){
+        let shell = match env::var("EXECUTE_SHELL") {
             Ok(shell) => shell,
             Err(_) => "sh".to_owned(),
         };
@@ -16,7 +19,8 @@ impl Executor {
 
     pub fn execute_steps(&self, steps: Vec<String>) {
         for step in steps.clone() {
-            self.execute(step).expect("Something went wrong on execution");
+            self.execute(step)
+                .expect("Something went wrong on execution");
         }
     }
 
@@ -27,7 +31,6 @@ impl Executor {
             .stdout(Stdio::null())
             .status()
     }
-
 }
 /// Evaluates if the given shell is on the system and executable. Returns 'sh' per default
 pub fn eval_shell(opt_shell: Option<String>) -> String {
@@ -42,7 +45,7 @@ pub fn eval_shell(opt_shell: Option<String>) -> String {
 
         match status.success() {
             true => shell,
-            false => "sh".to_owned()
+            false => "sh".to_owned(),
         }
     } else {
         "sh".to_owned()

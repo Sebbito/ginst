@@ -6,7 +6,7 @@ use std::error::Error;
 
 pub enum UI {
     TUI,
-    GUI
+    GUI,
 }
 
 pub fn run_app(app: &dyn types::Runnable) -> Result<(), Box<dyn Error>> {
@@ -18,7 +18,7 @@ pub fn run_ui<T: Programable>(ui_type: UI, items: Vec<T>) {
         UI::TUI => {
             let app = tui::App::new(items.clone());
             run_app(&app)
-        },
+        }
         UI::GUI => {
             panic!("Not implemented yet")
         }
