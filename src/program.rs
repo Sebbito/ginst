@@ -4,18 +4,23 @@
 
 pub mod steps;
 
-use serde::{Deserialize, Serialize};
-use crate::{distro::get_dist, types::{Programable, Sublistable}, executor::Executor};
 use self::steps::Steps;
+use crate::{
+    distro::get_dist,
+    executor::Executor,
+    types::{Programable, Sublistable},
+};
+use serde::{Deserialize, Serialize};
 
 /// Struct indicating the programs installation status
 #[derive(Default, Debug, PartialEq, Clone, Copy, Serialize, Deserialize)]
 pub enum Status {
     Installed,
-    #[default] Missing,
+    #[default]
+    Missing,
 }
 
-/// Struct representing a program 
+/// Struct representing a program
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub struct Program {
     name: String,
@@ -29,7 +34,7 @@ pub struct Program {
 }
 
 impl Program {
-    pub fn get_dependencies(&self) -> Vec<Program>{
+    pub fn get_dependencies(&self) -> Vec<Program> {
         self.dependencies.clone()
     }
 
@@ -67,7 +72,7 @@ impl Program {
         !self.dependencies.is_empty()
     }
 
-    fn steps_for_current_dist(&self, steps: &Vec<Steps>) -> Option<Steps>{
+    fn steps_for_current_dist(&self, steps: &Vec<Steps>) -> Option<Steps> {
         let current_dist = get_dist();
 
         if !steps.is_empty() {
@@ -103,17 +108,18 @@ impl Programable for Program {
     fn install(&self) {
         let instructions = &self.installation;
         if self.is_installed() {
-            println!("{} is already installed", self.name);
+            println!("{} is already installed.", self.name);
         } else {
             if !are_installed(&self.dependencies) {
-                install_missing(&self.dependencies);
+                install_all(&self.dependencies);
             }
 
             if let Some(steps) = self.steps_for_current_dist(instructions) {
                 steps.execute();
+            } else {
+                println!("No installation instructions for {} for this OS!", self.name);
             }
         }
-
     }
 
     /// Executes configuration instructions for the current distro (uses get_dist())
@@ -142,14 +148,12 @@ pub fn are_installed(programs: &Vec<Program>) -> bool {
     true
 }
 
-pub fn install_missing(programs: &Vec<Program>) {
+pub fn install_all(programs: &Vec<Program>) {
     for prog in programs.clone() {
-        if !prog.is_installed() {
-            if prog.has_dependencies() {
-                install_missing(&prog.get_dependencies());
-            }
-            prog.install();
+        if prog.has_dependencies() {
+            install_all(&prog.get_dependencies());
         }
+        prog.install();
     }
 }
 
@@ -228,5 +232,4 @@ mod tests {
         let programs = get_programs_from_file(PATH);
         assert!(programs[0].has_dependencies());
     }
-
 }

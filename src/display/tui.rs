@@ -4,14 +4,17 @@
 
 use crossterm::event::{self, Event, KeyCode};
 use std::{
+    error::Error,
     io,
-    time::{Duration, Instant}, error::Error};
+    time::{Duration, Instant},
+};
 use tui::{
     backend::Backend,
+    layout::{Constraint, Direction, Layout},
     style::{Color, Modifier, Style},
     text::{Span, Spans},
     widgets::{Block, Borders, List, ListItem, ListState},
-    Frame, Terminal, layout::{Direction, Constraint, Layout},
+    Frame, Terminal,
 };
 
 use crate::types::Programable;
@@ -63,6 +66,7 @@ impl<T> StatefulList<T> {
     // }
 }
 
+use crate::types::Runnable;
 /// This struct holds the current state of the app. In particular, it has the `items` field which is a wrapper
 /// around `ListState`. Keeping track of the items state let us render the associated widget with its state
 /// and have access to features such as natural scrolling.
@@ -70,12 +74,11 @@ impl<T> StatefulList<T> {
 /// Check the event handling at the bottom to see how to change the state on incoming events.
 /// Check the drawing logic for items on how to specify the highlighting style for selected items.
 use crossterm::{
-event::{DisableMouseCapture, EnableMouseCapture},
-execute,
-terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
+    event::{DisableMouseCapture, EnableMouseCapture},
+    execute,
+    terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
 use tui::backend::CrosstermBackend;
-use crate::types::Runnable;
 
 #[derive(Clone)]
 pub struct App<T: Programable> {
@@ -85,7 +88,7 @@ pub struct App<T: Programable> {
 impl<T: Programable> App<T> {
     pub fn new(items: Vec<T>) -> App<T> {
         App {
-            items: StatefulList::with_items(items)
+            items: StatefulList::with_items(items),
         }
     }
 }
@@ -103,7 +106,7 @@ impl<T: Programable> Runnable for App<T> {
         let tick_rate = Duration::from_millis(250);
         let res = run_app(&mut terminal, self.clone(), tick_rate, false);
 
-            // restore terminal
+        // restore terminal
         disable_raw_mode()?;
         execute!(
             terminal.backend_mut(),
@@ -116,7 +119,6 @@ impl<T: Programable> Runnable for App<T> {
             println!("{:?}", err);
         }
         Ok(())
-
     }
 }
 
@@ -124,7 +126,7 @@ pub fn run_app<B: Backend, T: Programable>(
     terminal: &mut Terminal<B>,
     mut app: App<T>,
     tick_rate: Duration,
-    is_submenu: bool
+    is_submenu: bool,
 ) -> io::Result<()> {
     let last_tick = Instant::now();
     loop {
@@ -150,7 +152,7 @@ pub fn run_app<B: Backend, T: Programable>(
                         if is_submenu {
                             return Ok(());
                         }
-                    },
+                    }
                     KeyCode::Down | KeyCode::Char('j') => app.items.next(),
                     KeyCode::Up | KeyCode::Char('k') => app.items.previous(),
                     KeyCode::Right | KeyCode::Char('l') => {
@@ -162,17 +164,17 @@ pub fn run_app<B: Backend, T: Programable>(
                                 run_app(terminal, sub_app.clone(), tick_rate, true)?;
                             }
                         }
-                    },
+                    }
                     KeyCode::Enter | KeyCode::Char('i') => {
                         if selected.is_some() {
                             selected.unwrap().install();
                         }
-                    },
+                    }
                     KeyCode::Char('c') => {
                         if selected.is_some() {
                             selected.unwrap().configure();
                         }
-                    },
+                    }
                     _ => {}
                 }
             }
@@ -194,38 +196,42 @@ fn generate_key_overview_box() -> Block<'static> {
 
 fn ui<B: Backend, T: Programable + Clone>(f: &mut Frame<B>, app: &mut App<T>) {
     // Iterate through all elements in the `items` app and append some info to it.
-    let items: Vec<ListItem> = app
-        .items
-        .items
-        .iter()
-        .map(|i| {
-            let mut lines = vec![Spans::from(i.get_name())];
-            
-            // get the status text
-            let status = match i.is_installed() {
-                true => "🗹 Installed".to_owned(),
-                false => "⮽ Missing".to_owned(),
-            };
-            // append it to the item
-            lines.push(Spans::from(
-                Span::styled(status, Style::default().add_modifier(Modifier::ITALIC))
-            ));
-            
-            // optionally append a hint for subitems to it
-            if !i.get_sublist().is_empty() {
-                lines.push(Spans::from(
-                    Span::styled(">>>", Style::default().add_modifier(Modifier::ITALIC))
-                ));
-            }
+    let items: Vec<ListItem> =
+        app.items
+            .items
+            .iter()
+            .map(|i| {
+                let mut lines = vec![Spans::from(i.get_name())];
 
-            // based on status set othe colors
-            match i.is_installed() {
-                true => ListItem::new(lines).style(Style::default().fg(Color::White).bg(Color::Green)),
-                false => ListItem::new(lines).style(Style::default().fg(Color::White).bg(Color::Red)),
-            }
-            
-        })
-        .collect();
+                // get the status text
+                let status = match i.is_installed() {
+                    true => "🗹 Installed".to_owned(),
+                    false => "⮽ Missing".to_owned(),
+                };
+                // append it to the item
+                lines.push(Spans::from(Span::styled(
+                    status,
+                    Style::default().add_modifier(Modifier::ITALIC),
+                )));
+
+                // optionally append a hint for subitems to it
+                if !i.get_sublist().is_empty() {
+                    lines.push(Spans::from(Span::styled(
+                        ">>>",
+                        Style::default().add_modifier(Modifier::ITALIC),
+                    )));
+                }
+
+                // based on status set othe colors
+                match i.is_installed() {
+                    true => ListItem::new(lines)
+                        .style(Style::default().fg(Color::White).bg(Color::Green)),
+                    false => {
+                        ListItem::new(lines).style(Style::default().fg(Color::White).bg(Color::Red))
+                    }
+                }
+            })
+            .collect();
 
     // Create a List from all list items and highlight the currently selected one
     let items = List::new(items)
