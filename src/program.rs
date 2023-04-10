@@ -108,14 +108,16 @@ impl Programable for Program {
     fn install(&self) {
         let instructions = &self.installation;
         if self.is_installed() {
-            println!("{} is already installed", self.name);
+            println!("{} is already installed.", self.name);
         } else {
             if !are_installed(&self.dependencies) {
-                install_missing(&self.dependencies);
+                install_all(&self.dependencies);
             }
 
             if let Some(steps) = self.steps_for_current_dist(instructions) {
                 steps.execute();
+            } else {
+                println!("No installation instructions for {} for this OS!", self.name);
             }
         }
     }
@@ -146,14 +148,12 @@ pub fn are_installed(programs: &Vec<Program>) -> bool {
     true
 }
 
-pub fn install_missing(programs: &Vec<Program>) {
+pub fn install_all(programs: &Vec<Program>) {
     for prog in programs.clone() {
-        if !prog.is_installed() {
-            if prog.has_dependencies() {
-                install_missing(&prog.get_dependencies());
-            }
-            prog.install();
+        if prog.has_dependencies() {
+            install_all(&prog.get_dependencies());
         }
+        prog.install();
     }
 }
 

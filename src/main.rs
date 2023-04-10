@@ -54,6 +54,7 @@ pub struct Arguments {
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
+    // output debug info if the build is a debug build
     if cfg!(debug_assertions) {
         env::set_var("RUST_BACKTRACE", "1");
     }
@@ -75,7 +76,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         match &command {
             Command::Install { all } => {
                 if *all {
-                    program::install_missing(&programs);
+                    program::install_all(&programs);
                 }
             }
             Command::Configure { all } => {
