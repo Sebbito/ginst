@@ -44,9 +44,17 @@ pub struct Arguments {
     #[arg(long, group = "cli")]
     count_missing: bool,
 
-    /// perform checks on all programs and dependencies
+    /// perform checks if file is syntax is ok
     #[arg(long, group = "cli")]
     check: bool,
+
+    /// list all the programs contained in the file
+    #[arg(long, group = "cli")]
+    list: bool,
+
+    /// list programs and check if they are installed
+    #[arg(long, group = "cli")]
+    status: bool,
 
     /// The shell in which the command shall be executed
     #[arg(value_enum)]
@@ -72,6 +80,10 @@ fn main() -> Result<(), Box<dyn Error>> {
     } else if args.check {
         // parser already ran
         println!("File looks good!");
+    } else if args.list {
+        program::print_name(&programs);
+    } else if args.status {
+        program::print_status(&programs);
     } else if let Some(command) = args.command {
         match &command {
             Command::Install { all } => {
@@ -94,13 +106,6 @@ fn main() -> Result<(), Box<dyn Error>> {
                     let string = serde_yaml::to_string(&programs).unwrap();
                     let new_file = Path::new(file).with_extension("yml");
                     std::fs::write(new_file, string).unwrap();
-                }
-            },
-            Command::List { status } => {
-                if *status {
-                    program::print_status(&programs);
-                } else {
-                    program::print_name(&programs);
                 }
             }
         }
