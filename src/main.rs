@@ -107,7 +107,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                     let new_file = Path::new(file).with_extension("yml");
                     std::fs::write(new_file, string).unwrap();
                 }
-            }
+            },
         }
     } else {
         display::run_ui(display::UI::TUI, programs);

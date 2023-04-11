@@ -26,7 +26,6 @@ pub enum Command {
         #[arg(value_enum)]
         filetype: FileType,
     },
-
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]

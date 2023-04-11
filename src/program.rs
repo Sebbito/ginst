@@ -117,7 +117,10 @@ impl Programable for Program {
             if let Some(steps) = self.steps_for_current_dist(instructions) {
                 steps.execute();
             } else {
-                println!("No installation instructions for {} for this OS!", self.name);
+                println!(
+                    "No installation instructions for {} for this OS!",
+                    self.name
+                );
             }
         }
     }
