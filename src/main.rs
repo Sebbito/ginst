@@ -18,8 +18,10 @@ pub mod executor;
 pub mod parser;
 pub mod program;
 pub mod types;
+pub mod commands;
 
-use crate::types::{Command, FileType};
+use commands::Command;
+use types::{FileType, Programable};
 use clap::Parser;
 use program::Program;
 use std::env;
@@ -35,6 +37,10 @@ pub struct Arguments {
 
     /// Path to the file holding program information
     file: String,
+
+    /// Start an interactive Terminal User Interface
+    #[arg(short, long, group = "cli")]
+    interactive: bool,
 
     /// count all programs (including dependencies)
     #[arg(long, group = "cli")]
@@ -84,16 +90,34 @@ fn main() -> Result<(), Box<dyn Error>> {
         program::print_name(&programs);
     } else if args.status {
         program::print_status(&programs);
+    } else if args.interactive {
+        display::run_ui(display::UI::TUI, programs);
     } else if let Some(command) = args.command {
         match &command {
-            Command::Install { all } => {
+            Command::Install { all, program } => {
                 if *all {
                     program::install_all(&programs);
+                } else if let Some(program_name) = program {
+                    if let Some(prog) = program::search_from_name(program_name, &programs){
+                        prog.install();
+                    } else {
+                        println!("No program with name {} found", program_name);
+                    }
+                } else {
+                    panic!("No option on install");
                 }
             }
-            Command::Configure { all } => {
+            Command::Configure { all, program } => {
                 if *all {
                     program::configure_all(&programs);
+                } else if let Some(program_name) = program {
+                    if let Some(prog) = program::search_from_name(program_name, &programs){
+                        prog.configure();
+                    } else {
+                        println!("No program with name {} found", program_name);
+                    }
+                } else {
+                    panic!("No option on configure");
                 }
             }
             Command::Export { filetype } => match filetype {
@@ -107,10 +131,11 @@ fn main() -> Result<(), Box<dyn Error>> {
                     let new_file = Path::new(file).with_extension("yml");
                     std::fs::write(new_file, string).unwrap();
                 }
-            }
+            },
         }
     } else {
-        display::run_ui(display::UI::TUI, programs);
+        println!("Please specify what to do.");
+        println!("See `ginst --help` for help.");
     }
     Ok(())
 }
