@@ -18,8 +18,10 @@ pub mod executor;
 pub mod parser;
 pub mod program;
 pub mod types;
+pub mod commands;
 
-use crate::types::{Command, FileType};
+use commands::Command;
+use types::FileType;
 use clap::Parser;
 use program::Program;
 use std::env;
@@ -35,6 +37,10 @@ pub struct Arguments {
 
     /// Path to the file holding program information
     file: String,
+
+    /// Start an interactive Terminal User Interface
+    #[arg(short, long, group = "cli")]
+    interactive: bool,
 
     /// count all programs (including dependencies)
     #[arg(long, group = "cli")]
@@ -84,6 +90,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         program::print_name(&programs);
     } else if args.status {
         program::print_status(&programs);
+    } else if args.interactive {
+        display::run_ui(display::UI::TUI, programs);
     } else if let Some(command) = args.command {
         match &command {
             Command::Install { all } => {
@@ -110,7 +118,8 @@ fn main() -> Result<(), Box<dyn Error>> {
             },
         }
     } else {
-        display::run_ui(display::UI::TUI, programs);
+        println!("Please specify what to do.");
+        println!("See `ginst --help` for help.");
     }
     Ok(())
 }
