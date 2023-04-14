@@ -21,7 +21,7 @@ pub mod types;
 pub mod commands;
 
 use commands::Command;
-use types::FileType;
+use types::{FileType, Programable};
 use clap::Parser;
 use program::Program;
 use std::env;
@@ -94,14 +94,30 @@ fn main() -> Result<(), Box<dyn Error>> {
         display::run_ui(display::UI::TUI, programs);
     } else if let Some(command) = args.command {
         match &command {
-            Command::Install { all } => {
+            Command::Install { all, program } => {
                 if *all {
                     program::install_all(&programs);
+                } else if let Some(program_name) = program {
+                    if let Some(prog) = program::search_from_name(program_name, &programs){
+                        prog.install();
+                    } else {
+                        println!("No program with name {} found", program_name);
+                    }
+                } else {
+                    panic!("No option on install");
                 }
             }
-            Command::Configure { all } => {
+            Command::Configure { all, program } => {
                 if *all {
                     program::configure_all(&programs);
+                } else if let Some(program_name) = program {
+                    if let Some(prog) = program::search_from_name(program_name, &programs){
+                        prog.configure();
+                    } else {
+                        println!("No program with name {} found", program_name);
+                    }
+                } else {
+                    panic!("No option on configure");
                 }
             }
             Command::Export { filetype } => match filetype {

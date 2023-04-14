@@ -139,6 +139,22 @@ impl Programable for Program {
     }
 }
 
+/// Will search the Programs vec for a program with name `name` and return that if it finds one
+/// Will also search dependencies recursively
+pub fn search_from_name(name: &String, programs: &Vec<Program>) -> Option<Program> {
+    for program in programs.iter().by_ref() {
+        if program.name == name.to_owned() {
+            return Some(program.clone());
+        } else {
+            if let Some(find) = search_from_name(name, &program.dependencies) {
+                return Some(find);
+            }
+        }
+    }
+
+    return None
+}
+
 pub fn are_installed(programs: &Vec<Program>) -> bool {
     if !programs.is_empty() {
         for is_installed in programs.clone().iter_mut().map(|d| d.is_installed()) {
