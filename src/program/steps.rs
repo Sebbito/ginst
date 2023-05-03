@@ -15,7 +15,7 @@ pub struct Steps {
 
 impl Steps {
     pub fn execute(&self) {
-        Executor::new().execute_steps(self.steps.clone());
+        Executor::new().execute_steps(&self.steps);
     }
 
     pub fn len(&self) -> usize {

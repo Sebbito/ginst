@@ -43,7 +43,7 @@ impl Program {
         // Performs a check if the program is installed
         // use type since it also finds builtins like fisher on fish
         let command = format!("type {}", self.name);
-        let status = Executor::new().execute(command).unwrap();
+        let status = Executor::new().execute(&command).unwrap();
 
         if status.success() {
             Status::Installed
@@ -125,12 +125,12 @@ impl Programable for Program {
     }
 }
 
-/// Will search the Programs vec for a program with name `name` and return that if it finds one
+/// Will search the Programs vec for a program with name `name` and return a reference to that if it finds one
 /// Will also search dependencies recursively
-pub fn search_from_name(name: &String, programs: &Vec<Program>) -> Option<Program> {
+pub fn search_from_name<'a>(name: &String, programs: &'a Vec<Program>) -> Option<&'a Program> {
     for program in programs.iter() {
         if program.name == name.to_owned() {
-            return Some(program.clone());
+            return Some(&program);
         } else {
             if let Some(find) = search_from_name(name, &program.dependencies) {
                 return Some(find);
@@ -154,7 +154,7 @@ pub fn are_installed(programs: &Vec<Program>) -> bool {
 }
 
 pub fn install_all(programs: &Vec<Program>) {
-    for prog in programs.clone() {
+    for prog in programs.iter() {
         if prog.has_dependencies() {
             install_all(&prog.get_dependencies());
         }

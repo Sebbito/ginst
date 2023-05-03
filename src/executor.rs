@@ -17,14 +17,14 @@ impl Executor {
         Executor { shell }
     }
 
-    pub fn execute_steps(&self, steps: Vec<String>) {
-        for step in steps.clone() {
+    pub fn execute_steps(&self, steps: &Vec<String>) {
+        for step in steps.iter() {
             self.execute(step)
                 .expect("Something went wrong on execution");
         }
     }
 
-    pub fn execute(&self, command: String) -> std::io::Result<ExitStatus> {
+    pub fn execute(&self, command: &String) -> std::io::Result<ExitStatus> {
         Command::new(self.shell.clone())
             .arg("-c")
             .arg(command.clone())
