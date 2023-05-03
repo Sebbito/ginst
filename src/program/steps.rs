@@ -28,11 +28,11 @@ impl Steps {
 }
 
 /// utility function to get instructions for currect dist
-pub fn steps_for_dist(list: Vec<Steps>, distro: &String) -> Option<Steps> {
+pub fn steps_for_dist<'a>(list: &'a Vec<Steps>, distro: &String) -> Option<&'a Steps> {
     for steps in list {
-        for dist in steps.distro.clone() {
+        for dist in steps.distro.iter() {
             if dist.eq(distro) || dist == "*" {
-                return Some(steps);
+                return Some(&steps);
             }
         }
     }
