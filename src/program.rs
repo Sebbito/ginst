@@ -72,17 +72,6 @@ impl Program {
         !self.dependencies.is_empty()
     }
 
-    fn steps_for_current_dist(&self, steps: &Vec<Steps>) -> Option<Steps> {
-        let current_dist = get_dist();
-
-        if !steps.is_empty() {
-            steps::steps_for_dist(steps.clone(), &current_dist)
-        } else {
-            println!("Instructions are empty");
-            None
-        }
-    }
-
     pub fn get_status(&self) -> String {
         if self.is_installed() {
             "Installed".to_owned()
@@ -106,7 +95,6 @@ impl Programable for Program {
     /// Executes installation instructions for the current distro (uses get_dist()) unless it is
     /// already installed
     fn install(&self) {
-        let instructions = &self.installation;
         if self.is_installed() {
             println!("{} is already installed.", self.name);
         } else {
@@ -114,7 +102,7 @@ impl Programable for Program {
                 install_all(&self.dependencies);
             }
 
-            if let Some(steps) = self.steps_for_current_dist(instructions) {
+            if let Some(steps) = steps::steps_for_dist(&self.installation, &get_dist()) {
                 steps.execute();
             } else {
                 println!(
@@ -127,9 +115,7 @@ impl Programable for Program {
 
     /// Executes configuration instructions for the current distro (uses get_dist())
     fn configure(&self) {
-        let instructions = &self.configuration;
-
-        if let Some(steps) = self.steps_for_current_dist(instructions) {
+        if let Some(steps) = steps::steps_for_dist(&self.configuration, &get_dist()) {
             steps.execute();
         }
     }
@@ -142,7 +128,7 @@ impl Programable for Program {
 /// Will search the Programs vec for a program with name `name` and return that if it finds one
 /// Will also search dependencies recursively
 pub fn search_from_name(name: &String, programs: &Vec<Program>) -> Option<Program> {
-    for program in programs.iter().by_ref() {
+    for program in programs.iter() {
         if program.name == name.to_owned() {
             return Some(program.clone());
         } else {
@@ -157,7 +143,7 @@ pub fn search_from_name(name: &String, programs: &Vec<Program>) -> Option<Progra
 
 pub fn are_installed(programs: &Vec<Program>) -> bool {
     if !programs.is_empty() {
-        for is_installed in programs.clone().iter_mut().map(|d| d.is_installed()) {
+        for is_installed in programs.iter().map(|d| d.is_installed()) {
             if !is_installed {
                 return false;
             }
@@ -177,7 +163,7 @@ pub fn install_all(programs: &Vec<Program>) {
 }
 
 pub fn configure_all(programs: &Vec<Program>) {
-    for prog in programs.clone() {
+    for prog in programs {
         prog.configure();
         if prog.has_dependencies() {
             configure_all(&prog.get_dependencies());
