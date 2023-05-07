@@ -12,7 +12,7 @@ use crate::{
 };
 use serde::{Deserialize, Serialize};
 
-/// Struct indicating the programs installation status
+/// Struct indicating the programs installation status.
 #[derive(Default, Debug, PartialEq, Clone, Copy, Serialize, Deserialize)]
 pub enum Status {
     Installed,
@@ -20,7 +20,7 @@ pub enum Status {
     Missing,
 }
 
-/// Struct representing a program
+/// Struct representing a program.
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub struct Program {
     name: String,
@@ -28,20 +28,20 @@ pub struct Program {
     configuration: Vec<Steps>,
     dependencies: Vec<Program>,
 
-    /// status will be determined at runtime
+    /// Status which will be determined at runtime.
     #[serde(skip)]
     status: Status,
 }
 
 impl Program {
+    /// Getter for dependencies.
     pub fn get_dependencies(&self) -> Vec<Program> {
         self.dependencies.clone()
     }
 
-    /// Checks if a program is installed using `type`.
+    /// Checks if a program is installed using the shell builtin command `type`.
     pub fn check(&self) -> Status {
-        // Performs a check if the program is installed
-        // use type since it also finds builtins like fisher on fish
+        // Use `type` since it also finds builtins like fisher on fish.
         let command = format!("type {}", self.name);
         let status = Executor::new().execute(&command).unwrap();
 
@@ -52,7 +52,7 @@ impl Program {
         }
     }
 
-    /// sets the status for itself **and all dependencies**
+    /// Sets the status for itself **and all dependencies**.
     pub fn set_status(&mut self) {
         self.status = self.check();
         for dep in self.dependencies.iter_mut().by_ref() {
@@ -60,19 +60,23 @@ impl Program {
         }
     }
 
+    /// Returns true if the `configuration` array is not empty.
     pub fn has_configuration_steps(&self) -> bool {
         !self.configuration.is_empty()
     }
 
+    /// Returns true if the `installation` array is not empty.
     pub fn has_installation_steps(&self) -> bool {
         !self.installation.is_empty()
     }
 
+    /// Returns true if the `dependencies` array is not empty.
     pub fn has_dependencies(&self) -> bool {
         !self.dependencies.is_empty()
     }
 
-    pub fn get_status(&self) -> String {
+    /// Returns it's own status in a string format.
+    pub fn get_status_as_string(&self) -> String {
         if self.is_installed() {
             "Installed".to_owned()
         } else {
@@ -81,19 +85,23 @@ impl Program {
     }
 }
 
+/// Sublistable implementation for Program.
 impl Sublistable for Program {
+    /// Returns the dependencies as Vec of Program.
     fn get_sublist(&self) -> Vec<Program> {
         self.get_dependencies()
     }
 }
 
+/// Programable implementation for Program.
 impl Programable for Program {
+    /// Returns a copy of it's name
     fn get_name(&self) -> String {
         self.name.clone()
     }
 
     /// Executes installation instructions for the current distro (uses get_dist()) unless it is
-    /// already installed
+    /// already installed.
     fn install(&self) {
         if self.is_installed() {
             println!("{} is already installed.", self.name);
@@ -114,19 +122,23 @@ impl Programable for Program {
     }
 
     /// Executes configuration instructions for the current distro (uses get_dist())
+    /// without exception.
     fn configure(&self) {
         if let Some(steps) = steps::steps_for_dist(&self.configuration, &get_dist()) {
             steps.execute();
         }
     }
 
+    /// Returns true if self's status is Installed and all the dependencies are installed aswell
     fn is_installed(&self) -> bool {
         self.status == Status::Installed && are_installed(&self.dependencies)
     }
 }
 
-/// Will search the Programs vec for a program with name `name` and return a reference to that if it finds one
-/// Will also search dependencies recursively
+/// Will search the `programs` vec for a program with name `name` and returns a reference to that
+/// if it finds one.
+/// Returns None if it finds nothing.
+/// Will also search dependencies recursively.
 pub fn search_from_name<'a>(name: &String, programs: &'a Vec<Program>) -> Option<&'a Program> {
     for program in programs.iter() {
         if program.name == name.to_owned() {
@@ -141,6 +153,8 @@ pub fn search_from_name<'a>(name: &String, programs: &'a Vec<Program>) -> Option
     return None
 }
 
+/// Iterates the `programs` vec and calls `.is_installed()` on each of them.
+/// Returns true if they are installed and false otherwise.
 pub fn are_installed(programs: &Vec<Program>) -> bool {
     if !programs.is_empty() {
         for is_installed in programs.iter().map(|d| d.is_installed()) {
@@ -153,6 +167,7 @@ pub fn are_installed(programs: &Vec<Program>) -> bool {
     true
 }
 
+/// Calls `.install()` on all dependencies first and then on itself.
 pub fn install_all(programs: &Vec<Program>) {
     for prog in programs.iter() {
         if prog.has_dependencies() {
@@ -207,7 +222,7 @@ pub fn print_name(programs: &Vec<Program>) {
 
 pub fn print_status(programs: &Vec<Program>) {
     for program in programs {
-        println!("{},{}", program.get_name(), program.get_status());
+        println!("{},{}", program.get_name(), program.get_status_as_string());
         if program.has_dependencies() {
             print_status(&program.get_dependencies());
         }
