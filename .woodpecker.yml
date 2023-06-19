@@ -1,11 +1,11 @@
 pipeline:
   build:
-    image: rust:1.67
+    image: rust:1.69
     commands:
       - echo "Building Step"
       - make build
   test:
-    image: rust:1.67
+    image: rust:1.69
     commands:
       - echo "Testing"
       - make test
