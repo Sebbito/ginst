@@ -1,10 +1,38 @@
+![Static Badge](https://img.shields.io/badge/rustc-1.69-red)
+![Crates.io](https://img.shields.io/crates/d/ginst)
+![Crates.io](https://img.shields.io/crates/l/ginst)
+
+
 # ginst
 
-**ginst** (short for generic installer) a tool used to install programs according to self written configurations on GNU/Linux.
+**ginst** (short for generic installer) a tool used to install programs
+according to self written configurations on GNU/Linux.
 
-The tool takes a file and tries to execute the commands given.
+The tool takes a file and will execute the commands given.
+
+## Why ginst?
+
+While ginst is similar to automation plattforms like ansible, it aims to be
+used once when initially installing programs for the first time on a machine.
+
+You should be able to download and execute a binary together with your easy to
+use and expand config and lean back.
+
+The configuration is meant to support cross-plattform usage and as such eliminate
+complicated shell scripts.
+
+## Features
+
+You can:
+- declare dependencies (as many as you want)
+- differentiate between Linux distributions
+- install and configure programs in a bash based environment
+- 
 
 ## Requirements
+
+As of now you need cargo and bash on your machine. I'm working on providing binaries
+for the biggest architectures as a means to eliminate any dependencies for using ginst.
 
 -  cargo (rust)
 -  bash
@@ -15,7 +43,7 @@ The tool takes a file and tries to execute the commands given.
 curl --proto '=https' -sSf  https://raw.githubusercontent.com/Sebbito/ginst/main/install.sh | sh
 ```
 
-## Usage
+## Usage and help
 
 See the [Wiki](https://github.com/Sebbito/ginst/wiki)
 
@@ -25,18 +53,14 @@ or use
 ginst --help
 ```
 
-## Configuring
+## Resources
 
-ginst uses files which hold the instructions used to install or configure programs.
+### Having trouble?
 
-There are example files in `example/` which are regularly tested and should be in the correct form for each release.
+Open an issue if you have any trouble or read through the official [ginst wiki](https://codeberg.org/Sebito/ginst/wiki).
 
-Note: See the [Wiki](https://github.com/Sebbito/ginst/wiki/Supported-File-Types) on the supported file types.
+### Contributing
 
-## Troubleshooting
+If you want to contribute, you can open a Pull Request for ginst [here](https://codeberg.org/Sebito/ginst/pulls).
 
-Q: The program doesn't start and throws an error:
-
-`thread 'main' panicked at 'Error("expected `<char>`", line: ?, column: ?)', src/parser.rs`
-
-A: The file could not be parsed correctly. The error message states the line and column of the unexpected character. Check the example files and see if you've made an error in your file.
+Every constructive feedback, feature request and bug fix is greatly appreciated ❤️
