@@ -10,3 +10,7 @@ license = "GPL-3.0"
 [dependencies]
 clap = { version = "4.1.1", features = ["derive"] }
 libginst = "0.1.0"
+
+[profile.release]
+opt-level = "s"         # optimize for binary size
+strip = "debuginfo"
