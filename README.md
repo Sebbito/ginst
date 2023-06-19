@@ -1,3 +1,4 @@
+![Crates.io](https://img.shields.io/crates/v/ginst)
 ![Static Badge](https://img.shields.io/badge/rustc-1.69-red)
 ![Crates.io](https://img.shields.io/crates/d/ginst)
 ![Crates.io](https://img.shields.io/crates/l/ginst)
