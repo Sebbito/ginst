@@ -12,20 +12,20 @@
 //!
 //! For more information see the [ginst Wiki](https://github.com/Sebbito/ginst/wiki)
 
-pub mod display;
-pub mod distro;
-pub mod executor;
-pub mod parser;
-pub mod program;
-pub mod types;
 pub mod commands;
 
+// use libginst::types::FileType;
+use libginst::{
+    types::Programable,
+    program,
+    program::Program,
+    executor,
+    parser
+};
 use commands::Command;
-use types::{FileType, Programable};
 use clap::Parser;
-use program::Program;
 use std::env;
-use std::{error::Error, path::Path};
+use std::error::Error;
 
 /// Args struct holding the CL args
 #[derive(Parser)]
@@ -72,10 +72,16 @@ fn main() -> Result<(), Box<dyn Error>> {
     if cfg!(debug_assertions) {
         env::set_var("RUST_BACKTRACE", "1");
     }
-
+    // Parse arguments
     let args = Arguments::parse();
+
+    // Check if we can spawn processes with user suggested shell or just use `sh`
     let shell = executor::eval_shell(args.shell);
+    // set this as a global variable via environment variables so that future executors can access this easier
+    // TODO: find a better way to use these "dynamic global variables"
     env::set_var("EXECUTE_SHELL", shell);
+
+    // open file and parse the file contents
     let file = &args.file;
     let programs: Vec<Program> = parser::get_programs_from_file(file);
 
@@ -84,20 +90,19 @@ fn main() -> Result<(), Box<dyn Error>> {
     } else if args.count_missing {
         println!("{}", program::count_missing(&programs));
     } else if args.check {
-        // parser already ran
+        // parser already ran and succeeded
         println!("File looks good!");
     } else if args.list {
         program::print_name(&programs);
     } else if args.status {
         program::print_status(&programs);
-    } else if args.interactive {
-        display::run_ui(display::UI::TUI, programs);
     } else if let Some(command) = args.command {
         match &command {
             Command::Install { all, program } => {
                 if *all {
                     program::install_all(&programs);
                 } else if let Some(program_name) = program {
+                    // user only wants to install one certain program
                     if let Some(prog) = program::search_from_name(program_name, &programs){
                         prog.install();
                     } else {
@@ -111,6 +116,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 if *all {
                     program::configure_all(&programs);
                 } else if let Some(program_name) = program {
+                    // user only wants to configure one certain program
                     if let Some(prog) = program::search_from_name(program_name, &programs){
                         prog.configure();
                     } else {
@@ -120,20 +126,21 @@ fn main() -> Result<(), Box<dyn Error>> {
                     panic!("No option on configure");
                 }
             }
-            Command::Export { filetype } => match filetype {
-                FileType::Json => {
-                    let string = serde_json::to_string_pretty(&programs).unwrap();
-                    let new_file = Path::new(file).with_extension("json");
-                    std::fs::write(new_file, string).unwrap();
-                }
-                FileType::Yaml => {
-                    let string = serde_yaml::to_string(&programs).unwrap();
-                    let new_file = Path::new(file).with_extension("yml");
-                    std::fs::write(new_file, string).unwrap();
-                }
-            },
+            // Command::Export { filetype } => match filetype {
+            //     FileType::Json => {
+            //         let string = serde_json::to_string_pretty(&programs).unwrap();
+            //         let new_file = Path::new(file).with_extension("json");
+            //         std::fs::write(new_file, string).unwrap();
+            //     }
+            //     FileType::Yaml => {
+            //         let string = serde_yaml::to_string(&programs).unwrap();
+            //         let new_file = Path::new(file).with_extension("yml");
+            //         std::fs::write(new_file, string).unwrap();
+            //     }
+            // },
         }
     } else {
+        // user didn't use any known command
         println!("Please specify what to do.");
         println!("See `ginst --help` for help.");
     }
