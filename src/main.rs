@@ -12,20 +12,20 @@
 //!
 //! For more information see the [ginst Wiki](https://github.com/Sebbito/ginst/wiki)
 
-pub mod display;
-pub mod distro;
-pub mod executor;
-pub mod parser;
-pub mod program;
-pub mod types;
 pub mod commands;
 
+// use libginst::types::FileType;
+use libginst::{
+    types::Programable,
+    program,
+    program::Program,
+    executor,
+    parser
+};
 use commands::Command;
-use types::{FileType, Programable};
 use clap::Parser;
-use program::Program;
 use std::env;
-use std::{error::Error, path::Path};
+use std::error::Error;
 
 /// Args struct holding the CL args
 #[derive(Parser)]
@@ -96,8 +96,6 @@ fn main() -> Result<(), Box<dyn Error>> {
         program::print_name(&programs);
     } else if args.status {
         program::print_status(&programs);
-    } else if args.interactive {
-        display::run_ui(display::UI::TUI, programs);
     } else if let Some(command) = args.command {
         match &command {
             Command::Install { all, program } => {
@@ -128,18 +126,18 @@ fn main() -> Result<(), Box<dyn Error>> {
                     panic!("No option on configure");
                 }
             }
-            Command::Export { filetype } => match filetype {
-                FileType::Json => {
-                    let string = serde_json::to_string_pretty(&programs).unwrap();
-                    let new_file = Path::new(file).with_extension("json");
-                    std::fs::write(new_file, string).unwrap();
-                }
-                FileType::Yaml => {
-                    let string = serde_yaml::to_string(&programs).unwrap();
-                    let new_file = Path::new(file).with_extension("yml");
-                    std::fs::write(new_file, string).unwrap();
-                }
-            },
+            // Command::Export { filetype } => match filetype {
+            //     FileType::Json => {
+            //         let string = serde_json::to_string_pretty(&programs).unwrap();
+            //         let new_file = Path::new(file).with_extension("json");
+            //         std::fs::write(new_file, string).unwrap();
+            //     }
+            //     FileType::Yaml => {
+            //         let string = serde_yaml::to_string(&programs).unwrap();
+            //         let new_file = Path::new(file).with_extension("yml");
+            //         std::fs::write(new_file, string).unwrap();
+            //     }
+            // },
         }
     } else {
         // user didn't use any known command

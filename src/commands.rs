@@ -3,7 +3,7 @@
 /// 
 /// Subcommands and their arguments
 use clap::Subcommand;
-use crate::types::FileType;
+// use libginst::types::FileType;
 
 #[derive(Subcommand)]
 pub enum Command {
@@ -29,9 +29,9 @@ pub enum Command {
 
     },
 
-    /// Export the given file to a different format
-    Export {
-        #[arg(value_enum)]
-        filetype: FileType,
-    },
+    // Export the given file to a different format
+    // Export {
+    //     #[arg(value_enum)]
+    //     filetype: FileType,
+    // },
 }
