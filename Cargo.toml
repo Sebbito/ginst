@@ -9,4 +9,4 @@ license = "GPL-3.0"
 
 [dependencies]
 clap = { version = "4.1.1", features = ["derive"] }
-libginst = { git = "https://codeberg.org/Sebito/libginst.git" }
+libginst = "0.1.0"

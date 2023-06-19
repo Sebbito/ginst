@@ -154,7 +154,8 @@ checksum = "201de327520df007757c1f0adce6e827fe8562fbc28bfd9c15571c66ca1f5f79"
 [[package]]
 name = "libginst"
 version = "0.1.0"
-source = "git+https://codeberg.org/Sebito/libginst.git#93ea4faac681a411287a38be33a6f5b842c95370"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d2ebd8b56a079e741458f73032e0fb3df958949a9d0dc5c1f6b00425c4c243b1"
 dependencies = [
  "serde",
  "serde_json",
