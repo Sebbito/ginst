@@ -2,6 +2,7 @@ steps:
   lint:
     image: rust
     commands:
+      - rustup component add clippy
       - cargo clippy
   build:
     image: rust
