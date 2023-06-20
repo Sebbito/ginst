@@ -1,3 +1,4 @@
+[![status-badge](https://ci.codeberg.org/api/badges/12353/status.svg)](https://ci.codeberg.org/12353)
 ![Crates.io](https://img.shields.io/crates/v/ginst)
 ![Static Badge](https://img.shields.io/badge/rustc-1.69-red)
 ![Crates.io](https://img.shields.io/crates/d/ginst)
