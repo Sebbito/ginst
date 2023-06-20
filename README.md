@@ -65,3 +65,16 @@ Open an issue if you have any trouble or read through the official [ginst wiki](
 If you want to contribute, you can open a Pull Request for ginst [here](https://codeberg.org/Sebito/ginst/pulls).
 
 Every constructive feedback, feature request and bug fix is greatly appreciated ❤️
+
+### See also
+
+See the [library documentation](https://docs.rs/libginst/latest/libginst/) for
+more information.
+
+- [ginst](https://codeberg.org/Sebito/ginst)
+- [ginst-tui](https://codeberg.org/Sebito/ginst-tui)
+- [libginst](https://codeberg.org/Sebito/libginst)
+
+---
+
+Made with ☕
