@@ -1,11 +1,15 @@
-pipeline:
+steps:
+  lint:
+    image: rust
+    commands:
+      - cargo clippy
   build:
-    image: rust:1.69
+    image: rust
     commands:
       - echo "Building Step"
       - make build
   test:
-    image: rust:1.69
+    image: rust
     commands:
       - echo "Testing"
       - make test
