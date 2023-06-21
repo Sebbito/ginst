@@ -1,8 +1,8 @@
-[![status-badge](https://ci.codeberg.org/api/badges/12353/status.svg)](https://ci.codeberg.org/12353)
-![Crates.io](https://img.shields.io/crates/v/ginst)
 ![Static Badge](https://img.shields.io/badge/rustc-1.69-red)
-![Crates.io](https://img.shields.io/crates/d/ginst)
-![Crates.io](https://img.shields.io/crates/l/ginst)
+[![status-badge](https://ci.codeberg.org/api/badges/12353/status.svg)](https://ci.codeberg.org/12353)
+[![Crates.io](https://img.shields.io/crates/v/ginst)](https://crates.io/crates/ginst)
+[![Crates.io](https://img.shields.io/crates/d/ginst)](https://crates.io/crates/ginst)
+[![Crates.io](https://img.shields.io/crates/l/ginst)](https://crates.io/crates/ginst)
 
 
 # ginst
