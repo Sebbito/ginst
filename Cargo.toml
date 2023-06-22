@@ -2,8 +2,11 @@
 name = "ginst"
 version = "1.0.1"
 edition = "2021"
-description = "A generic installation tool, able to read and execute instructions from a json file."
+description = "A generic installation tool, able to read and execute instructions from a self written config file."
+homepage = "https://codeberg.org/Sebito/ginst"
+repository = "https://codeberg.org/Sebito/ginst"
 license = "GPL-3.0"
+license-file = "LICENSE"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
