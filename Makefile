@@ -1,17 +1,11 @@
+all: lint build test
 
-test:
-	cargo test
+lint:
+	cargo clippy -- -D warnings
 
 build:
 	cargo build
 
-clean:
-	cargo clean
-
-# make release builds for all architectures
-release: clean
-	cross b -r --target aarch64-unknown-linux-gnu
-	cross b -r --target aarch64-unknown-linux-musl
-	cross b -r --target x86_64-unknown-linux-gnu
-	cross b -r --target x86_64-unknown-linux-musl
-	
+test:
+	cargo check
+	cargo test
