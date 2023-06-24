@@ -16,16 +16,16 @@ pub mod commands;
 
 // use libginst::types::FileType;
 use libginst::{
-    types::Programable,
+    types::{Programable, ExecutionError},
     program,
     program::Program,
     executor,
-    parser
+    parser,
+    package_manager::get_package_manager
 };
 use commands::Command;
 use clap::Parser;
 use std::env;
-use std::error::Error;
 
 /// Args struct holding the CL args
 #[derive(Parser)]
@@ -37,10 +37,6 @@ pub struct Arguments {
 
     /// Path to the file holding program information
     file: String,
-
-    /// Start an interactive Terminal User Interface
-    #[arg(short, long, group = "cli")]
-    interactive: bool,
 
     /// count all programs (including dependencies)
     #[arg(long, group = "cli")]
@@ -67,7 +63,7 @@ pub struct Arguments {
     shell: Option<String>,
 }
 
-fn main() -> Result<(), Box<dyn Error>> {
+fn main() -> Result<(), ExecutionError> {
     // output debug info if the build is a debug build
     if cfg!(debug_assertions) {
         env::set_var("RUST_BACKTRACE", "1");
@@ -79,6 +75,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let shell = executor::eval_shell(args.shell);
     // set this as a global variable via environment variables so that future executors can access this easier
     // TODO: find a better way to use these "dynamic global variables"
+    // TODO: OMFG FIX THIS ASAP
     env::set_var("EXECUTE_SHELL", shell);
 
     // open file and parse the file contents
@@ -98,27 +95,27 @@ fn main() -> Result<(), Box<dyn Error>> {
         program::print_status(&programs);
     } else if let Some(command) = args.command {
         match &command {
-            Command::Install { all, program } => {
-                if *all {
-                    program::install_all(&programs);
-                } else if let Some(program_name) = program {
+            Command::Install { use_package_manager, program } => {
+                if let Some(program_name) = program {
                     // user only wants to install one certain program
                     if let Some(prog) = program::search_from_name(program_name, &programs){
-                        prog.install();
+                        install_with_pm_check(prog, *use_package_manager)?;
                     } else {
                         println!("No program with name {} found", program_name);
                     }
                 } else {
-                    panic!("No option on install");
+                    for p in programs.iter() {
+                        install_with_pm_check(p, *use_package_manager)?;
+                    }
                 }
             }
             Command::Configure { all, program } => {
                 if *all {
-                    program::configure_all(&programs);
+                    program::configure_all(&programs)?;
                 } else if let Some(program_name) = program {
                     // user only wants to configure one certain program
                     if let Some(prog) = program::search_from_name(program_name, &programs){
-                        prog.configure();
+                        prog.configure()?;
                     } else {
                         println!("No program with name {} found", program_name);
                     }
@@ -143,6 +140,35 @@ fn main() -> Result<(), Box<dyn Error>> {
         // user didn't use any known command
         println!("Please specify what to do.");
         println!("See `ginst --help` for help.");
+    }
+    Ok(())
+}
+
+// TODO: maybe not put this here...this is just a quick hacky way to not
+// get a headache
+fn install_with_pm_check(p: &Program, use_pm: bool) -> Result<(), ExecutionError> {
+    // try installing manually first
+    if let Err(error) = p.install() {
+        // if the installation failed we're fucked
+        if matches!(error, ExecutionError::InstallError) {
+            return Err(ExecutionError::InstallError);
+        } else {
+            // the remaining error cases are that the instruction set is empty
+            // for this case, if the user requested to use the package manager
+            // we will do so
+            if use_pm{
+                if let Some(pm) = get_package_manager() {
+                    if pm.install(p.get_name().as_ref()).is_ok() {
+                        return Ok(());
+                    }
+                    dbg!(pm);
+                    println!("Could not install program {}", p.get_name());
+                } else {
+                    println!("Package manager not found!");
+                }
+            }
+            return Err(ExecutionError::InstallError);
+        }
     }
     Ok(())
 }

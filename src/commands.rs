@@ -9,9 +9,9 @@ use clap::Subcommand;
 pub enum Command {
     /// Execute installation steps
     Install {
+        /// use the local package manager?
         #[arg(long, short)]
-        /// install all (missing)
-        all: bool,
+        use_package_manager: bool,
 
         /// the Program to install
         program: Option<String>,
